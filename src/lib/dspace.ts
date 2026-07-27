@@ -434,7 +434,7 @@ export function createDSpaceClient(config: ImportConfig, signal?: AbortSignal): 
           body: JSON.stringify({
             element: parsedField.element,
             qualifier: parsedField.qualifier,
-            scopeNote: `Created by DSpace dARK ID Import for ${metadataField}`
+            scopeNote: `Created by DSpace dARK ID Importer for ${metadataField}`
           }),
           headers: {
             "Content-Type": "application/json"

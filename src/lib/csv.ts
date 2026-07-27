@@ -1,8 +1,11 @@
 import Papa from "papaparse";
 import type { CsvDataset, CsvImportRow, ValidationIssue, ValidationSummary } from "@/types";
 import { buildHandleUri } from "@/lib/oai";
+import { translations, type TranslationDictionary } from "@/lib/i18n";
 
 const REQUIRED_COLUMNS = ["oai_identifier", "dark_id"] as const;
+type CsvMessages = TranslationDictionary["csv"];
+type OaiMessages = TranslationDictionary["oai"];
 
 function normalizeHeader(header: string): string {
   return header.trim();
@@ -12,9 +15,9 @@ function stringValue(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export async function parseCsvFile(file: File): Promise<CsvDataset> {
+export async function parseCsvFile(file: File, messages: CsvMessages = translations.en.csv): Promise<CsvDataset> {
   if (!file.name.toLowerCase().endsWith(".csv")) {
-    throw new Error("Upload a .csv file.");
+    throw new Error(messages.uploadCsvFile);
   }
 
   return new Promise((resolve, reject) => {
@@ -25,7 +28,7 @@ export async function parseCsvFile(file: File): Promise<CsvDataset> {
       complete: (result) => {
         if (result.errors.length > 0) {
           const firstError = result.errors[0];
-          reject(new Error(firstError?.message ?? "The CSV could not be parsed."));
+          reject(new Error(firstError?.message ?? messages.csvCouldNotBeParsed));
           return;
         }
 
@@ -49,13 +52,18 @@ export async function parseCsvFile(file: File): Promise<CsvDataset> {
   });
 }
 
-export function validateCsvDataset(dataset: CsvDataset | null, handleBaseUrl: string): ValidationSummary {
+export function validateCsvDataset(
+  dataset: CsvDataset | null,
+  handleBaseUrl: string,
+  messages: CsvMessages = translations.en.csv,
+  oaiMessages: OaiMessages = translations.en.oai
+): ValidationSummary {
   if (!dataset) {
     return {
       totalRows: 0,
       validRows: 0,
       invalidRows: 0,
-      errors: [{ severity: "error", field: "csv", message: "Upload a CSV file before continuing." }],
+      errors: [{ severity: "error", field: "csv", message: messages.uploadBeforeContinuing }],
       warnings: []
     };
   }
@@ -70,7 +78,7 @@ export function validateCsvDataset(dataset: CsvDataset | null, handleBaseUrl: st
       issues.push({
         severity: "error",
         field: "csv",
-        message: `Missing required column "${column}".`
+        message: messages.missingRequiredColumn(column)
       });
     }
   }
@@ -82,21 +90,21 @@ export function validateCsvDataset(dataset: CsvDataset | null, handleBaseUrl: st
         severity: "error",
         rowNumber: row.rowNumber,
         field: "oai_identifier",
-        message: "OAI identifier is required."
+        message: messages.oaiIdentifierRequired
       });
     } else {
       const existing = oaiCounts.get(row.oaiIdentifier) ?? [];
       oaiCounts.set(row.oaiIdentifier, [...existing, row.rowNumber]);
 
       try {
-        buildHandleUri(row.oaiIdentifier, handleBaseUrl);
+        buildHandleUri(row.oaiIdentifier, handleBaseUrl, oaiMessages);
       } catch (error) {
         invalidRowNumbers.add(row.rowNumber);
         issues.push({
           severity: "error",
           rowNumber: row.rowNumber,
           field: "oai_identifier",
-          message: error instanceof Error ? error.message : "Malformed OAI identifier."
+          message: error instanceof Error ? error.message : messages.malformedOaiIdentifier
         });
       }
     }
@@ -107,7 +115,7 @@ export function validateCsvDataset(dataset: CsvDataset | null, handleBaseUrl: st
         severity: "error",
         rowNumber: row.rowNumber,
         field: "dark_id",
-        message: "dARK ID is required."
+        message: messages.darkIdRequired
       });
     } else {
       const existing = darkIdCounts.get(row.darkId) ?? [];
@@ -124,7 +132,7 @@ export function validateCsvDataset(dataset: CsvDataset | null, handleBaseUrl: st
       issues.push({
         severity: "error",
         field: "oai_identifier",
-        message: `Duplicate OAI identifier "${identifier}" appears on rows ${rowNumbers.join(", ")}.`
+        message: messages.duplicateOaiIdentifier(identifier, rowNumbers.join(", "))
       });
     }
   }
@@ -134,7 +142,7 @@ export function validateCsvDataset(dataset: CsvDataset | null, handleBaseUrl: st
       issues.push({
         severity: "warning",
         field: "dark_id",
-        message: `Duplicate dARK ID "${darkId}" appears on rows ${rowNumbers.join(", ")}.`
+        message: messages.duplicateDarkId(darkId, rowNumbers.join(", "))
       });
     }
   }

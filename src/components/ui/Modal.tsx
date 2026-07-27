@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { useI18n } from "@/state/I18nContext";
 
 interface ModalProps {
   open: boolean;
@@ -13,6 +14,8 @@ interface ModalProps {
 }
 
 export function Modal({ open, title, description, children, footer, onOpenChange }: ModalProps) {
+  const { t } = useI18n();
+
   useEffect(() => {
     if (!open) {
       return;
@@ -34,7 +37,7 @@ export function Modal({ open, title, description, children, footer, onOpenChange
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <button className="absolute inset-0 bg-foreground/45" aria-label="Close modal" onClick={() => onOpenChange(false)} />
+      <button className="absolute inset-0 bg-foreground/45" aria-label={t.common.closeModal} onClick={() => onOpenChange(false)} />
       <div className={cn("relative w-full max-w-lg rounded-lg border bg-card text-card-foreground shadow-material")}>
         <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
           <div className="space-y-1">
@@ -43,7 +46,7 @@ export function Modal({ open, title, description, children, footer, onOpenChange
             </h2>
             {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
           </div>
-          <Button size="icon" variant="ghost" aria-label="Close modal" onClick={() => onOpenChange(false)}>
+          <Button size="icon" variant="ghost" aria-label={t.common.closeModal} onClick={() => onOpenChange(false)}>
             <X className="h-4 w-4" />
           </Button>
         </div>

@@ -1,4 +1,4 @@
-# DSpace dARK ID Import
+# DSpace dARK ID Importer
 
 A Next.js application for importing a CSV file and appending metadata to existing DSpace Items through the DSpace REST API. The initial workflow imports dARK IDs by searching for each generated Handle URI and appending a configurable metadata field.
 

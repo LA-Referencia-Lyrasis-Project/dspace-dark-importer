@@ -1,15 +1,17 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const steps = ["Configuration", "CSV Validation", "Processing", "Results"];
+import { useI18n } from "@/state/I18nContext";
 
 interface StepperProps {
   currentStep: number;
 }
 
 export function Stepper({ currentStep }: StepperProps) {
+  const { t } = useI18n();
+  const steps = [t.steps.configuration, t.steps.validation, t.steps.processing, t.steps.results];
+
   return (
-    <nav aria-label="Import steps" className="grid gap-2 sm:grid-cols-4">
+    <nav aria-label={t.steps.ariaLabel} className="grid gap-2 sm:grid-cols-4">
       {steps.map((step, index) => {
         const position = index + 1;
         const isComplete = position < currentStep;

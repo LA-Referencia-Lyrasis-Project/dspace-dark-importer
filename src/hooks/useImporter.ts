@@ -11,6 +11,7 @@ import type {
 import { createDSpaceClient } from "@/lib/dspace";
 import { buildHandleUri } from "@/lib/oai";
 import { HttpError, NetworkError } from "@/lib/retry";
+import { translations, type TranslationDictionary } from "@/lib/i18n";
 
 type ImportRunStatus = "idle" | "authenticating" | "processing" | "completed" | "cancelled";
 
@@ -60,12 +61,12 @@ function classifyStatus(error: unknown): ImportStatus {
   return "API ERROR";
 }
 
-function messageFromError(error: unknown): string {
+function translatedMessageFromError(error: unknown, messages: TranslationDictionary["importer"]): string {
   if (error instanceof Error) {
     return error.message;
   }
 
-  return "Unexpected error.";
+  return messages.unexpectedError;
 }
 
 function reportFor(row: CsvImportRow, generatedUri: string, status: ImportStatus, message: string, item?: DSpaceItem): ImportReportRow {
@@ -93,7 +94,7 @@ function itemAlreadyHasMetadataValue(item: DSpaceItem, metadataField: string, va
   return (item.metadata[metadataField] ?? []).some((metadataValue) => metadataValue.value.trim() === normalizedValue);
 }
 
-export function useImporter(config: ImportConfig, rows: CsvImportRow[]) {
+export function useImporter(config: ImportConfig, rows: CsvImportRow[], messages: TranslationDictionary["importer"] = translations.en.importer) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const [state, setState] = useState<ImporterState>({
     status: "idle",
@@ -166,16 +167,16 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[]) {
       startedAt: Date.now(),
       finishedAt: null,
       stats: { ...initialStats, total: rows.length, remaining: rows.length },
-      logs: [createLog("info", "Starting import session.")],
+      logs: [createLog("info", messages.startingSession)],
       reportRows: []
     });
 
     try {
       await client.authenticate();
-      appendLog(createLog("success", "Bearer token configured. DSpace will validate it on API requests."));
+      appendLog(createLog("success", messages.bearerConfigured));
     } catch (error) {
       const now = Date.now();
-      const message = messageFromError(error);
+      const message = translatedMessageFromError(error, messages);
       const authReportRows = rows.map((row) => reportFor(row, generatedUriForReport(row, config.handleBaseUrl), "AUTHENTICATION ERROR", message));
 
       setState((current) => ({
@@ -196,13 +197,13 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[]) {
         createLog(
           "success",
           metadataFieldResult.created
-            ? `Metadata field created: ${config.metadataUpdateField}.`
-            : `Metadata field verified: ${config.metadataUpdateField}.`
+            ? messages.metadataFieldCreated(config.metadataUpdateField)
+            : messages.metadataFieldVerified(config.metadataUpdateField)
         )
       );
     } catch (error) {
       const now = Date.now();
-      const message = messageFromError(error);
+      const message = translatedMessageFromError(error, messages);
       setState((current) => ({
         ...current,
         status: "completed",
@@ -219,7 +220,7 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[]) {
 
     for (const row of rows) {
       if (abortController.signal.aborted) {
-        appendLog(createLog("warning", "Import cancelled."));
+        appendLog(createLog("warning", messages.importCancelled));
         break;
       }
 
@@ -227,42 +228,42 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[]) {
 
       try {
         generatedUri = buildHandleUri(row.oaiIdentifier, config.handleBaseUrl);
-        appendLog(createLog("info", `Searching item for ${generatedUri}.`, row.rowNumber));
+        appendLog(createLog("info", messages.searchingItem(generatedUri), row.rowNumber));
 
         const matches = await client.searchItemByMetadata(config.metadataSearchField, generatedUri);
 
         if (matches.length === 0) {
-          appendLog(createLog("warning", "Item not found.", row.rowNumber));
-          recordResult(reportFor(row, generatedUri, "NOT FOUND", "No item matched the generated URI."));
+          appendLog(createLog("warning", messages.itemNotFound, row.rowNumber));
+          recordResult(reportFor(row, generatedUri, "NOT FOUND", messages.noItemMatched));
           continue;
         }
 
         if (matches.length > 1) {
-          appendLog(createLog("warning", "Multiple matching items found.", row.rowNumber));
-          recordResult(reportFor(row, generatedUri, "MULTIPLE MATCHES", "More than one item matched the generated URI."));
+          appendLog(createLog("warning", messages.multipleItemsFound, row.rowNumber));
+          recordResult(reportFor(row, generatedUri, "MULTIPLE MATCHES", messages.moreThanOneItemMatched));
           continue;
         }
 
         const item = matches[0];
-        appendLog(createLog("success", `Item found: ${item.uuid}.`, row.rowNumber));
+        appendLog(createLog("success", messages.itemFound(item.uuid), row.rowNumber));
 
         if (itemAlreadyHasMetadataValue(item, config.metadataUpdateField, row.darkId)) {
-          appendLog(createLog("info", "Metadata value already exists. Skipping row.", row.rowNumber));
-          recordResult(reportFor(row, generatedUri, "SKIPPED", "Metadata value already exists on item.", item));
+          appendLog(createLog("info", messages.metadataAlreadyExistsLog, row.rowNumber));
+          recordResult(reportFor(row, generatedUri, "SKIPPED", messages.metadataAlreadyExistsReport, item));
           continue;
         }
 
         await client.updateItemMetadata(item, config.metadataUpdateField, row.darkId);
-        appendLog(createLog("success", "Metadata updated.", row.rowNumber));
-        recordResult(reportFor(row, generatedUri, "UPDATED", "Metadata value appended.", item));
+        appendLog(createLog("success", messages.metadataUpdated, row.rowNumber));
+        recordResult(reportFor(row, generatedUri, "UPDATED", messages.metadataAppended, item));
       } catch (error) {
         if (abortController.signal.aborted) {
-          appendLog(createLog("warning", "Import cancelled."));
+          appendLog(createLog("warning", messages.importCancelled));
           break;
         }
 
         const status = classifyStatus(error);
-        const message = messageFromError(error);
+        const message = translatedMessageFromError(error, messages);
         appendLog(createLog("error", message, row.rowNumber));
         recordResult(reportFor(row, generatedUri, status, message));
       }
@@ -275,7 +276,7 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[]) {
       status: cancelled ? "cancelled" : "completed",
       finishedAt: Date.now()
     }));
-  }, [appendLog, config, recordResult, rows]);
+  }, [appendLog, config, messages, recordResult, rows]);
 
   const cancel = useCallback(() => {
     abortControllerRef.current?.abort();

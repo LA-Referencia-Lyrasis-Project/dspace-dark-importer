@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { AppProvider } from "@/state/AppContext";
+import { I18nProvider } from "@/state/I18nContext";
 import { AppShell } from "@/components/AppShell";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -27,10 +28,12 @@ export function NextAppFrame({ children }: { children: ReactNode }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <AppProvider>
-      <AppShell currentStep={stepForPath(pathname)} theme={theme} onToggleTheme={toggleTheme}>
-        {children}
-      </AppShell>
-    </AppProvider>
+    <I18nProvider>
+      <AppProvider>
+        <AppShell currentStep={stepForPath(pathname)} theme={theme} onToggleTheme={toggleTheme}>
+          {children}
+        </AppShell>
+      </AppProvider>
+    </I18nProvider>
   );
 }

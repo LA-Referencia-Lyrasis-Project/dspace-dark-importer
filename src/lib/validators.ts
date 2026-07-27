@@ -1,18 +1,27 @@
 import { z } from "zod";
+import { translations, type TranslationDictionary } from "@/lib/i18n";
 
-const metadataFieldSchema = z
-  .string()
-  .trim()
-  .min(1, "Metadata field is required.")
-  .regex(/^[a-zA-Z0-9_.-]+$/, "Use a valid DSpace metadata field, such as dc.identifier.uri.");
+type ValidatorMessages = TranslationDictionary["validators"];
 
-export const configurationSchema = z
-  .object({
-    restApiUrl: z.string().trim().url("Enter a valid DSpace REST API URL."),
-    handleBaseUrl: z.string().trim().url("Enter a valid Handle Base URL."),
-    bearerToken: z.string().trim().min(1, "Bearer token is required."),
-    metadataSearchField: metadataFieldSchema.default("dc.identifier.uri"),
-    metadataUpdateField: metadataFieldSchema.default("dc.identifier.darkid")
-  });
+function metadataFieldSchema(messages: ValidatorMessages) {
+  return z
+    .string()
+    .trim()
+    .min(1, messages.metadataFieldRequired)
+    .regex(/^[a-zA-Z0-9_.-]+$/, messages.invalidMetadataField);
+}
+
+export function createConfigurationSchema(messages: ValidatorMessages = translations.en.validators) {
+  return z
+    .object({
+      restApiUrl: z.string().trim().url(messages.restApiUrl),
+      handleBaseUrl: z.string().trim().url(messages.handleBaseUrl),
+      bearerToken: z.string().trim().min(1, messages.bearerToken),
+      metadataSearchField: metadataFieldSchema(messages).default("dc.identifier.uri"),
+      metadataUpdateField: metadataFieldSchema(messages).default("dc.identifier.darkid")
+    });
+}
+
+export const configurationSchema = createConfigurationSchema();
 
 export type ConfigurationFormValues = z.infer<typeof configurationSchema>;

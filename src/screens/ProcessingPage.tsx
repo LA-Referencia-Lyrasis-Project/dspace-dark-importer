@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Progress } from "@/components/ui/Progress";
 import { useAppContext } from "@/state/AppContext";
+import { useI18n } from "@/state/I18nContext";
 import { useBeforeUnload } from "@/hooks/useBeforeUnload";
 import { useImporter } from "@/hooks/useImporter";
 import { formatDuration } from "@/lib/utils";
@@ -14,10 +15,12 @@ import { formatDuration } from "@/lib/utils";
 export function ProcessingPage() {
   const router = useRouter();
   const { config, dataset, startRequested, setStartRequested, setResults } = useAppContext();
+  const { language, t } = useI18n();
   const rows = dataset?.rows ?? [];
-  const importer = useImporter(config, rows);
+  const importer = useImporter(config, rows, t.importer);
   const didAutoStart = useRef(false);
   const logRef = useRef<HTMLDivElement | null>(null);
+  const numberLocale = language === "pt" ? "pt-BR" : "en-US";
 
   useBeforeUnload(importer.isProcessing);
 
@@ -43,9 +46,9 @@ export function ProcessingPage() {
     return (
       <Card>
         <CardContent className="p-6">
-          <Alert tone="error">Upload and validate a CSV file before processing.</Alert>
+          <Alert tone="error">{t.processing.uploadAndValidateBeforeProcessing}</Alert>
           <Button className="mt-4" variant="outline" onClick={() => router.push("/")}>
-            Back to Configuration
+            {t.validation.backToConfiguration}
           </Button>
         </CardContent>
       </Card>
@@ -59,12 +62,12 @@ export function ProcessingPage() {
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle>Processing</CardTitle>
+            <CardTitle>{t.processing.title}</CardTitle>
             <CardDescription>
-              Processing {importer.stats.processed.toLocaleString()} of {importer.stats.total.toLocaleString()} items
+              {t.processing.progressDescription(importer.stats.processed.toLocaleString(numberLocale), importer.stats.total.toLocaleString(numberLocale))}
             </CardDescription>
           </div>
-          <Badge tone={importer.isProcessing ? "default" : importer.status === "completed" ? "success" : "muted"}>{importer.status}</Badge>
+          <Badge tone={importer.isProcessing ? "default" : importer.status === "completed" ? "success" : "muted"}>{t.processing.statuses[importer.status]}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -78,25 +81,25 @@ export function ProcessingPage() {
 
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-8">
           {[
-            ["Total", importer.stats.total],
-            ["Processed", importer.stats.processed],
-            ["Updated", importer.stats.updated],
-            ["Skipped", importer.stats.skipped],
-            ["Not Found", importer.stats.notFound],
-            ["Multiple", importer.stats.multipleMatches],
-            ["Errors", importer.stats.errors],
-            ["Remaining", importer.stats.remaining]
+            [t.processing.stats.total, importer.stats.total],
+            [t.processing.stats.processed, importer.stats.processed],
+            [t.processing.stats.updated, importer.stats.updated],
+            [t.processing.stats.skipped, importer.stats.skipped],
+            [t.processing.stats.notFound, importer.stats.notFound],
+            [t.processing.stats.multiple, importer.stats.multipleMatches],
+            [t.processing.stats.errors, importer.stats.errors],
+            [t.processing.stats.remaining, importer.stats.remaining]
           ].map(([label, value]) => (
             <div key={label} className="rounded-md border p-3">
               <p className="text-xs text-muted-foreground">{label}</p>
-              <p className="text-xl font-semibold">{Number(value).toLocaleString()}</p>
+              <p className="text-xl font-semibold">{Number(value).toLocaleString(numberLocale)}</p>
             </div>
           ))}
         </div>
 
         <div ref={logRef} className="h-[360px] overflow-y-auto rounded-md border bg-muted/35 p-3 font-mono text-sm">
           {importer.logs.length === 0 ? (
-            <p className="text-muted-foreground">Waiting to start.</p>
+            <p className="text-muted-foreground">{t.processing.waitingToStart}</p>
           ) : (
             <div className="space-y-2">
               {importer.logs.map((entry) => {
@@ -105,7 +108,7 @@ export function ProcessingPage() {
                   <div key={entry.id} className="flex gap-2">
                     <Icon className="mt-0.5 h-4 w-4 shrink-0" />
                     <span className="text-muted-foreground">{entry.timestamp}</span>
-                    {entry.rowNumber ? <span>row {entry.rowNumber}</span> : null}
+                    {entry.rowNumber ? <span>{t.processing.logRow} {entry.rowNumber}</span> : null}
                     <span>{entry.message}</span>
                   </div>
                 );
@@ -117,21 +120,21 @@ export function ProcessingPage() {
       <CardFooter className="justify-between">
         <Button variant="outline" disabled={importer.isProcessing} onClick={() => router.push("/validation")}>
           <ArrowLeft className="h-4 w-4" />
-          Back
+          {t.common.back}
         </Button>
         <div className="flex gap-3">
           {importer.isProcessing ? (
             <Button variant="destructive" onClick={importer.cancel}>
               <Ban className="h-4 w-4" />
-              Cancel
+              {t.common.cancel}
             </Button>
           ) : importer.status === "idle" ? (
             <Button onClick={() => void importer.start()}>
               <Loader2 className="h-4 w-4" />
-              Start
+              {t.common.start}
             </Button>
           ) : (
-            <Button onClick={() => router.push("/results")}>View Results</Button>
+            <Button onClick={() => router.push("/results")}>{t.processing.viewResults}</Button>
           )}
         </div>
       </CardFooter>
