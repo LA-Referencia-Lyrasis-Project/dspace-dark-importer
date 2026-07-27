@@ -172,12 +172,7 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[]) {
 
     try {
       await client.authenticate();
-      appendLog(
-        createLog(
-          "success",
-          config.authMethod === "bearer" ? "Bearer token configured. DSpace will validate it on API requests." : "Authenticated with DSpace."
-        )
-      );
+      appendLog(createLog("success", "Bearer token configured. DSpace will validate it on API requests."));
     } catch (error) {
       const now = Date.now();
       const message = messageFromError(error);

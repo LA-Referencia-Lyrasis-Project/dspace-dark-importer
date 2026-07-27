@@ -1,22 +1,21 @@
 import { useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, FileUp, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Field } from "@/components/Field";
-import { useAppContext } from "@/app/AppContext";
+import { useAppContext } from "@/state/AppContext";
 import { parseCsvFile, validateCsvDataset } from "@/lib/csv";
 import { loadRecent } from "@/lib/storage";
 import { configurationSchema, type ConfigurationFormValues } from "@/lib/validators";
 
 export function ConfigurationPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { config, setConfig, dataset, setDataset, setValidation } = useAppContext();
   const [csvError, setCsvError] = useState<string | null>(null);
   const [isParsingCsv, setIsParsingCsv] = useState(false);
@@ -32,8 +31,6 @@ export function ConfigurationPage() {
     defaultValues: config
   });
 
-  const authMethod = watch("authMethod");
-  const useBackendProxy = watch("useBackendProxy");
   const handleBaseUrl = watch("handleBaseUrl");
   const csvSummary = useMemo(() => validateCsvDataset(dataset, handleBaseUrl), [dataset, handleBaseUrl]);
 
@@ -68,7 +65,7 @@ export function ConfigurationPage() {
       return;
     }
 
-    navigate("/validation");
+    router.push("/validation");
   }
 
   return (
@@ -97,54 +94,15 @@ export function ConfigurationPage() {
             </datalist>
           </Field>
 
-          <div className="rounded-md border p-4">
-            <label className="flex items-start gap-3 text-sm">
-              <input className="mt-1 h-4 w-4 accent-primary" type="checkbox" {...register("useBackendProxy")} />
-              <span>
-                <span className="block font-medium">Use backend proxy</span>
-                <span className="mt-1 block text-muted-foreground">
-                  Route DSpace API calls through a local proxy when the DSpace backend rejects browser CORS requests.
-                </span>
-              </span>
-            </label>
-            {useBackendProxy ? (
-              <div className="mt-4">
-                <Field label="Backend Proxy URL" htmlFor="backendProxyUrl" error={errors.backendProxyUrl?.message}>
-                  <Input id="backendProxyUrl" placeholder="http://localhost:8787/api/dspace/proxy" {...register("backendProxyUrl")} />
-                </Field>
-              </div>
-            ) : null}
-          </div>
-
           <div className="grid gap-5">
             <Field label="Metadata Field to Update" htmlFor="metadataUpdateField" error={errors.metadataUpdateField?.message}>
               <Input id="metadataUpdateField" {...register("metadataUpdateField")} />
             </Field>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-[220px_1fr]">
-            <Field label="Authentication" htmlFor="authMethod" error={errors.authMethod?.message}>
-              <Select id="authMethod" {...register("authMethod")}>
-                <option value="bearer">Bearer Token</option>
-                <option value="password">Username and Password</option>
-              </Select>
-            </Field>
-
-            {authMethod === "bearer" ? (
-              <Field label="Bearer Token" htmlFor="bearerToken" error={errors.bearerToken?.message}>
-                <Input id="bearerToken" type="password" autoComplete="off" {...register("bearerToken")} />
-              </Field>
-            ) : (
-              <div className="grid gap-5 md:grid-cols-2">
-                <Field label="Email" htmlFor="email" error={errors.email?.message}>
-                  <Input id="email" type="email" autoComplete="username" {...register("email")} />
-                </Field>
-                <Field label="Password" htmlFor="password" error={errors.password?.message}>
-                  <Input id="password" type="password" autoComplete="current-password" {...register("password")} />
-                </Field>
-              </div>
-            )}
-          </div>
+          <Field label="Bearer Token" htmlFor="bearerToken" error={errors.bearerToken?.message}>
+            <Input id="bearerToken" type="password" autoComplete="off" {...register("bearerToken")} />
+          </Field>
         </CardContent>
       </Card>
 

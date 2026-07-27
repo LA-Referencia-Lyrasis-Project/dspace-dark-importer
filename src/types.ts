@@ -1,14 +1,7 @@
-export type AuthMethod = "bearer" | "password";
-
 export interface ImportConfig {
   restApiUrl: string;
   handleBaseUrl: string;
-  useBackendProxy: boolean;
-  backendProxyUrl: string;
-  authMethod: AuthMethod;
   bearerToken: string;
-  email: string;
-  password: string;
   metadataSearchField: string;
   metadataUpdateField: string;
 }

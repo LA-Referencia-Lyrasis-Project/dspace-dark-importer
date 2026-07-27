@@ -186,27 +186,6 @@ function parseMetadataFieldName(metadataField: string): ParsedMetadataField {
   };
 }
 
-function getCookie(name: string): string | null {
-  const cookie = document.cookie
-    .split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith(`${name}=`));
-
-  if (!cookie) {
-    return null;
-  }
-
-  return decodeURIComponent(cookie.slice(name.length + 1));
-}
-
-function extractBearerToken(headerValue: string | null): string {
-  if (!headerValue) {
-    throw new Error("Authentication succeeded but no Authorization header was returned by DSpace.");
-  }
-
-  return headerValue.replace(/^Bearer\s+/i, "").trim();
-}
-
 function classifyHttpError(error: unknown): Error {
   if (error instanceof HttpError) {
     const detail = error.body.trim();
@@ -234,9 +213,18 @@ function classifyHttpError(error: unknown): Error {
   return new Error("Unexpected DSpace API error.");
 }
 
+function isMutatingMethod(method: string): boolean {
+  return method !== "GET";
+}
+
+function isCsrfHttpError(error: unknown): error is HttpError {
+  return error instanceof HttpError && error.status === 403 && /csrf/i.test(error.body);
+}
+
 export function createDSpaceClient(config: ImportConfig, signal?: AbortSignal): DSpaceClient {
   const baseUrl = normalizeRestApiUrl(config.restApiUrl);
-  let authToken = config.authMethod === "bearer" ? config.bearerToken.trim().replace(/^Bearer\s+/i, "") : "";
+  const proxyUrl = "/api/dspace/proxy";
+  const authToken = config.bearerToken.trim().replace(/^Bearer\s+/i, "");
   let csrfToken = "";
 
   function headersToRecord(headers: Headers): Record<string, string> {
@@ -266,48 +254,24 @@ export function createDSpaceClient(config: ImportConfig, signal?: AbortSignal): 
   async function fetchFromDSpace(path: string, init: RequestInit): Promise<Response> {
     const method = init.method ?? "GET";
     const requestUrl = `${baseUrl}${path}`;
-
-    if (config.useBackendProxy) {
-      const proxyUrl = config.backendProxyUrl.trim();
-      const headers = new Headers(init.headers);
-      const payload: ProxyRequestPayload = {
-        restApiUrl: baseUrl,
-        path,
-        method,
-        headers: headersToRecord(headers),
-        body: bodyToString(init.body)
-      };
-
-      try {
-        return await fetch(proxyUrl, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload),
-          signal: init.signal
-        });
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          throw error;
-        }
-
-        const originalMessage = error instanceof Error ? error.message : "Unknown browser fetch failure.";
-        console.error("DSpace backend proxy request failed", {
-          proxyUrl,
-          targetMethod: method,
-          targetUrl: requestUrl,
-          error
-        });
-        throw new NetworkError("POST", `${proxyUrl} -> ${method} ${requestUrl}`, originalMessage);
-      }
-    }
+    const headers = new Headers(init.headers);
+    const payload: ProxyRequestPayload = {
+      restApiUrl: baseUrl,
+      path,
+      method,
+      headers: headersToRecord(headers),
+      body: bodyToString(init.body)
+    };
 
     try {
-      return await fetch(requestUrl, {
-        ...init,
-        credentials: "include"
+      return await fetch(proxyUrl, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload),
+        signal: init.signal
       });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
@@ -315,12 +279,13 @@ export function createDSpaceClient(config: ImportConfig, signal?: AbortSignal): 
       }
 
       const originalMessage = error instanceof Error ? error.message : "Unknown browser fetch failure.";
-      console.error("DSpace network request failed", {
-        method,
-        url: requestUrl,
+      console.error("DSpace backend proxy request failed", {
+        proxyUrl,
+        targetMethod: method,
+        targetUrl: requestUrl,
         error
       });
-      throw new NetworkError(method, requestUrl, originalMessage);
+      throw new NetworkError("POST", `${proxyUrl} -> ${method} ${requestUrl}`, originalMessage);
     }
   }
 
@@ -343,10 +308,8 @@ export function createDSpaceClient(config: ImportConfig, signal?: AbortSignal): 
         headers.set("Authorization", `Bearer ${authToken}`);
       }
 
-      const readableCookieToken = getCookie("XSRF-TOKEN") ?? getCookie("DSPACE-XSRF-TOKEN");
-      const tokenForRequest = csrfToken || readableCookieToken;
-      if (tokenForRequest && options.method && options.method !== "GET") {
-        headers.set("X-XSRF-TOKEN", tokenForRequest);
+      if (csrfToken && isMutatingMethod(method)) {
+        headers.set("X-XSRF-TOKEN", csrfToken);
       }
 
       const response = await fetchFromDSpace(path, {
@@ -373,52 +336,49 @@ export function createDSpaceClient(config: ImportConfig, signal?: AbortSignal): 
       return (await response.json()) as T;
     };
 
+    const executeWithCsrfRecovery = async (): Promise<T> => {
+      try {
+        return await execute();
+      } catch (error) {
+        if (isMutatingMethod(method) && isCsrfHttpError(error)) {
+          csrfToken = "";
+          await ensureCsrfToken(true);
+          return execute();
+        }
+
+        throw error;
+      }
+    };
+
     if (options.retry === false) {
-      return execute();
+      return executeWithCsrfRecovery();
     }
 
-    return withRetry(execute, { attempts: 3, initialDelayMs: 600, signal: options.signal ?? signal });
+    return withRetry(executeWithCsrfRecovery, { attempts: 3, initialDelayMs: 600, signal: options.signal ?? signal });
   }
 
-  async function ensureCsrfToken(): Promise<void> {
-    if (csrfToken || getCookie("XSRF-TOKEN") || getCookie("DSPACE-XSRF-TOKEN")) {
+  async function ensureCsrfToken(forceRefresh = false): Promise<void> {
+    if (csrfToken && !forceRefresh) {
       return;
     }
 
+    csrfToken = "";
     await request<unknown>("/api/security/csrf", {
       method: "GET",
       retry: false
     });
+
+    if (!csrfToken) {
+      throw new Error("DSpace did not return a CSRF token from /api/security/csrf.");
+    }
   }
 
   return {
     authenticate: async () => {
-      if (config.authMethod === "bearer") {
-        return authToken;
+      if (!authToken) {
+        throw new Error("Bearer token is required.");
       }
 
-      await ensureCsrfToken();
-      const requestUrl = `${baseUrl}/api/authn/login`;
-      const body = new URLSearchParams();
-      body.set("user", config.email.trim());
-      body.set("password", config.password);
-
-      const response = await fetchFromDSpace("/api/authn/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/json"
-        },
-        body,
-        signal
-      });
-      updateCsrfToken(response);
-
-      if (!response.ok) {
-        throw new HttpError(response.status, response.statusText, await response.text());
-      }
-
-      authToken = extractBearerToken(response.headers.get("Authorization"));
       return authToken;
     },
     searchItemByMetadata: async (_metadataField, value) => {
@@ -474,7 +434,7 @@ export function createDSpaceClient(config: ImportConfig, signal?: AbortSignal): 
           body: JSON.stringify({
             element: parsedField.element,
             qualifier: parsedField.qualifier,
-            scopeNote: `Created by DSpace Dark ID Import for ${metadataField}`
+            scopeNote: `Created by DSpace dARK ID Import for ${metadataField}`
           }),
           headers: {
             "Content-Type": "application/json"

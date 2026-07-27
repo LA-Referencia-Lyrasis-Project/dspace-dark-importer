@@ -1,18 +1,18 @@
 import { useEffect, useRef } from "react";
 import { ArrowLeft, Ban, CheckCircle2, Loader2, XCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Progress } from "@/components/ui/Progress";
-import { useAppContext } from "@/app/AppContext";
+import { useAppContext } from "@/state/AppContext";
 import { useBeforeUnload } from "@/hooks/useBeforeUnload";
 import { useImporter } from "@/hooks/useImporter";
 import { formatDuration } from "@/lib/utils";
 
 export function ProcessingPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { config, dataset, startRequested, setStartRequested, setResults } = useAppContext();
   const rows = dataset?.rows ?? [];
   const importer = useImporter(config, rows);
@@ -44,7 +44,7 @@ export function ProcessingPage() {
       <Card>
         <CardContent className="p-6">
           <Alert tone="error">Upload and validate a CSV file before processing.</Alert>
-          <Button className="mt-4" variant="outline" onClick={() => navigate("/")}>
+          <Button className="mt-4" variant="outline" onClick={() => router.push("/")}>
             Back to Configuration
           </Button>
         </CardContent>
@@ -115,7 +115,7 @@ export function ProcessingPage() {
         </div>
       </CardContent>
       <CardFooter className="justify-between">
-        <Button variant="outline" disabled={importer.isProcessing} onClick={() => navigate("/validation")}>
+        <Button variant="outline" disabled={importer.isProcessing} onClick={() => router.push("/validation")}>
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
@@ -131,7 +131,7 @@ export function ProcessingPage() {
               Start
             </Button>
           ) : (
-            <Button onClick={() => navigate("/results")}>View Results</Button>
+            <Button onClick={() => router.push("/results")}>View Results</Button>
           )}
         </div>
       </CardFooter>

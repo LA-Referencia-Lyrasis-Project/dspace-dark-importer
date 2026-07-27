@@ -1,15 +1,15 @@
 import { ArrowLeft, Download } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
-import { useAppContext } from "@/app/AppContext";
+import { useAppContext } from "@/state/AppContext";
 import { downloadReport } from "@/lib/report";
 import { formatDuration } from "@/lib/utils";
 
 export function ResultsPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { results } = useAppContext();
   const rows = results.rows;
   const updated = rows.filter((row) => row.status === "UPDATED").length;
@@ -23,7 +23,7 @@ export function ResultsPage() {
       <Card>
         <CardContent className="p-6">
           <Alert tone="warning">No execution report is available yet.</Alert>
-          <Button className="mt-4" variant="outline" onClick={() => navigate("/")}>
+          <Button className="mt-4" variant="outline" onClick={() => router.push("/")}>
             Back to Configuration
           </Button>
         </CardContent>
@@ -61,7 +61,7 @@ export function ResultsPage() {
               <tr>
                 <th className="px-4 py-3 font-medium">OAI Identifier</th>
                 <th className="px-4 py-3 font-medium">Generated URI</th>
-                <th className="px-4 py-3 font-medium">Dark ID</th>
+                <th className="px-4 py-3 font-medium">dARK ID</th>
                 <th className="px-4 py-3 font-medium">Item UUID</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Message</th>
@@ -97,7 +97,7 @@ export function ResultsPage() {
         </div>
       </CardContent>
       <CardFooter className="justify-between">
-        <Button variant="outline" onClick={() => navigate("/")}>
+        <Button variant="outline" onClick={() => router.push("/")}>
           <ArrowLeft className="h-4 w-4" />
           New Import
         </Button>

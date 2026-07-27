@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { CsvDataset, ImportConfig, ImportReportRow, ValidationSummary } from "@/types";
 import { defaultConfig, loadConfig, saveConfig } from "@/lib/storage";

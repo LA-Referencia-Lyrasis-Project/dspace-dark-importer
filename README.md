@@ -1,12 +1,12 @@
-# DSpace Dark ID Import
+# DSpace dARK ID Import
 
-A browser-only React application for importing a CSV file and appending metadata to existing DSpace Items through the DSpace REST API. The initial workflow imports Dark IDs by searching for each generated Handle URI and appending a configurable metadata field.
+A Next.js application for importing a CSV file and appending metadata to existing DSpace Items through the DSpace REST API. The initial workflow imports dARK IDs by searching for each generated Handle URI and appending a configurable metadata field.
 
 ## Features
 
 - Four-step workflow: Configuration, CSV Validation, Processing, Results
 - OAI identifier to Handle URI conversion using a configured Handle base URL
-- DSpace REST authentication with Bearer token or username/password login
+- DSpace REST authentication with a Bearer token
 - Per-row exact phrase Discovery search and JSON Patch metadata updates
 - Automatic metadata field creation when the configured update field is missing
 - Idempotent updates: rows are skipped when the item already has the same metadata value
@@ -15,7 +15,7 @@ A browser-only React application for importing a CSV file and appending metadata
 - Local Storage persistence for configuration and recently used URLs
 - Light and dark themes
 - Strict TypeScript, modular services, and unit tests
-- Optional local backend proxy for DSpace instances that reject browser CORS requests
+- Same-port backend proxy for DSpace API calls
 
 ## Project Setup
 
@@ -24,45 +24,23 @@ npm install
 npm run dev
 ```
 
-Open the URL printed by Vite.
+Open the URL printed by Next.js.
 
-## Backend Proxy Mode
+## Backend Proxy
 
-If DSpace rejects requests from the browser with `Invalid CORS request`, run the local proxy:
+All DSpace API calls go through the Next.js API route at `/api/dspace/proxy`. The browser calls the app on one origin, and the server calls DSpace from Node.js, so DSpace CORS configuration is not required for the import UI.
 
-```bash
-npm run proxy
-```
-
-Then enable **Use backend proxy** on the Configuration screen and use:
-
-```text
-http://localhost:8787/api/dspace/proxy
-```
-
-In this mode the browser calls the local proxy, and the proxy calls DSpace from Node.js. Browser CORS restrictions apply only to browser requests, so this avoids changing the DSpace backend CORS configuration.
-
-The proxy can also serve the production build:
-
-```bash
-npm run build
-npm run proxy
-```
-
-Then open:
-
-```text
-http://127.0.0.1:8787/
-```
+Use `npm run dev` for local development and `npm run start:prod` for production.
 
 ## Build
 
 ```bash
 npm run build
-npm run preview
 ```
 
-The production build is generated in `dist/` and can be hosted on any static web server.
+The production build is generated in `.next/` and is served with `npm start`.
+
+Because the app uses Next.js standalone output, run `npm run build` before `npm start`.
 
 ## Tests
 
@@ -74,18 +52,20 @@ The current test suite covers the reusable OAI-to-Handle conversion utility.
 
 ## Authentication
 
-Two authentication modes are supported:
+The app supports Bearer token authentication. Every DSpace request includes:
 
-- Bearer Token: every request includes `Authorization: Bearer <token>`.
-- Username and Password: the app posts credentials to `/api/authn/login` and stores the returned Bearer token in memory for the import session.
+```http
+Authorization: Bearer <token>
+```
 
-For modifying requests, DSpace requires JSON Patch. Some DSpace deployments also require CSRF protection for `PATCH`, `POST`, `PUT`, and `DELETE`. This app sends `credentials: "include"` and will forward a readable `DSPACE-XSRF-TOKEN` cookie as `X-XSRF-TOKEN` when present.
+Use a token for a DSpace user with permission to edit matched items. If the configured metadata field does not exist yet, the token must also belong to an administrator because creating metadata registry fields requires admin permissions.
+
+For modifying requests, DSpace requires JSON Patch and CSRF protection for `PATCH`, `POST`, `PUT`, and `DELETE`. The app obtains `DSPACE-XSRF-TOKEN`, sends it as `X-XSRF-TOKEN`, and the Next.js proxy keeps DSpace's CSRF cookie.
 
 ## Configuration
 
 - DSpace REST API URL: the base server URL, for example `https://repository.org/server`.
 - Repository Handle Base URL: the URL used to construct `dc.identifier.uri`, for example `https://deposita.ibict.br/handle/`.
-- Backend Proxy URL: optional; defaults to `http://localhost:8787/api/dspace/proxy`.
 - Metadata Field to Update: defaults to `dc.identifier.darkid`.
 
 If the update field does not exist, the app creates it using `POST /api/core/metadatafields?schemaId=<schemaId>`. This requires an administrator token because DSpace only allows admins to modify the metadata registry. The schema prefix, such as `dc` in `dc.identifier.darkid`, must already exist.
@@ -108,7 +88,7 @@ oai:deposita.ibict.br:deposita/635,dark:abcd123
 oai:repositorio.bc.ufg.br:tede/10757,dark:efgh456
 ```
 
-Blank lines are ignored. Validation blocks processing when required columns are missing, values are empty, OAI identifiers are malformed, or OAI identifiers are duplicated. Duplicate Dark IDs are displayed as warnings.
+Blank lines are ignored. Validation blocks processing when required columns are missing, values are empty, OAI identifiers are malformed, or OAI identifiers are duplicated. Duplicate dARK IDs are displayed as warnings.
 
 ## OAI Conversion
 
@@ -148,23 +128,74 @@ Before patching an item, the app checks the configured update field on the match
 
 The app targets DSpace 7 and newer REST APIs. It uses:
 
-- `POST /api/authn/login` for login
 - `GET /api/discover/search/objects?query="<generated-uri>"` for Discovery search
 - `GET /api/core/metadatafields` and `GET /api/core/metadataschemas` to verify the metadata registry
 - `POST /api/core/metadatafields?schemaId=<schemaId>` to create a missing update field
 - `PATCH /api/core/items/{uuid}` with JSON Patch metadata updates
 
-The REST API must be reachable from the browser and configured with CORS rules that allow the app origin, authorization headers, credentials when needed, and the HTTP methods used above.
+The DSpace REST API must be reachable from the Next.js server.
 
 ## Deployment
 
-Build the app and serve `dist/` from a static web host. Configure the DSpace server CORS settings for the deployed origin. No backend service is required.
+The deployment is one Next.js Node process serving both the UI and the DSpace proxy.
+
+```bash
+cp .env.example .env
+npm run start:prod
+```
+
+Then open:
+
+```text
+http://your-server:8787/
+```
+
+Enter the DSpace REST API URL on the Configuration screen. The server uses the URL submitted by the UI.
+
+### Environment Variables
+
+Server runtime:
+
+- `NODE_ENV`: use `production` for deployments.
+- `PORT`: HTTP port. Default: `8787`.
+- `HOSTNAME`: bind host used by the Next.js standalone server. Use `0.0.0.0` when exposing the app outside localhost.
+- `REQUEST_BODY_LIMIT_BYTES`: max JSON body accepted by the proxy. Default: `1048576`.
+- `PROXY_RESPONSE_LIMIT_BYTES`: max DSpace response body accepted by the proxy. Default: `26214400`.
+- `PROXY_TIMEOUT_MS`: DSpace request timeout. Default: `30000`.
+
+See [.env.example](.env.example) for a complete example.
+
+### PM2
+
+Install PM2 on the server if it is not already available:
+
+```bash
+npm install -g pm2
+```
+
+Build and start the production server with PM2:
+
+```bash
+npm run pm2:prod
+```
+
+Reload after deploying changes:
+
+```bash
+npm run pm2:reload
+```
+
+Stop the process:
+
+```bash
+npm run pm2:stop
+```
 
 ## Troubleshooting
 
 - `401 Unauthorized`: token is missing, expired, or credentials are invalid.
 - `403 Forbidden`: the authenticated user cannot edit the matching item.
 - `422 Unprocessable Entity`: the update metadata field may not exist in the DSpace metadata registry.
-- CORS errors: update DSpace CORS settings to allow the deployed origin, `Authorization`, `Content-Type`, and `X-XSRF-TOKEN` headers.
+- CORS errors: make sure the app is using the built-in `/api/dspace/proxy` route and that DSpace is reachable from the Next.js server.
 - No item found: confirm that the configured Handle base URL matches the URI stored in item metadata and indexed by Discovery.
 - Multiple matches: more than one item matched the generated URI in Discovery; inspect the repository metadata before rerunning.

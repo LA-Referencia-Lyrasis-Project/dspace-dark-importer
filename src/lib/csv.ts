@@ -107,7 +107,7 @@ export function validateCsvDataset(dataset: CsvDataset | null, handleBaseUrl: st
         severity: "error",
         rowNumber: row.rowNumber,
         field: "dark_id",
-        message: "Dark ID is required."
+        message: "dARK ID is required."
       });
     } else {
       const existing = darkIdCounts.get(row.darkId) ?? [];
@@ -134,7 +134,7 @@ export function validateCsvDataset(dataset: CsvDataset | null, handleBaseUrl: st
       issues.push({
         severity: "warning",
         field: "dark_id",
-        message: `Duplicate Dark ID "${darkId}" appears on rows ${rowNumbers.join(", ")}.`
+        message: `Duplicate dARK ID "${darkId}" appears on rows ${rowNumbers.join(", ")}.`
       });
     }
   }

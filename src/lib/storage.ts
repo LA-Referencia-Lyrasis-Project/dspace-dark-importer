@@ -6,12 +6,7 @@ const RECENT_KEY = "dspace-darkid-import:recent";
 export const defaultConfig: ImportConfig = {
   restApiUrl: "",
   handleBaseUrl: "",
-  useBackendProxy: false,
-  backendProxyUrl: "http://localhost:8787/api/dspace/proxy",
-  authMethod: "bearer",
   bearerToken: "",
-  email: "",
-  password: "",
   metadataSearchField: "dc.identifier.uri",
   metadataUpdateField: "dc.identifier.darkid"
 };
@@ -26,6 +21,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function loadConfig(): ImportConfig {
+  if (typeof window === "undefined") {
+    return defaultConfig;
+  }
+
   const raw = window.localStorage.getItem(CONFIG_KEY);
   if (!raw) {
     return defaultConfig;
@@ -38,10 +37,11 @@ export function loadConfig(): ImportConfig {
     }
 
     return {
-      ...defaultConfig,
-      ...parsed,
-      password: "",
-      bearerToken: typeof parsed.bearerToken === "string" ? parsed.bearerToken : ""
+      restApiUrl: typeof parsed.restApiUrl === "string" ? parsed.restApiUrl : defaultConfig.restApiUrl,
+      handleBaseUrl: typeof parsed.handleBaseUrl === "string" ? parsed.handleBaseUrl : defaultConfig.handleBaseUrl,
+      bearerToken: typeof parsed.bearerToken === "string" ? parsed.bearerToken : defaultConfig.bearerToken,
+      metadataSearchField: typeof parsed.metadataSearchField === "string" ? parsed.metadataSearchField : defaultConfig.metadataSearchField,
+      metadataUpdateField: typeof parsed.metadataUpdateField === "string" ? parsed.metadataUpdateField : defaultConfig.metadataUpdateField
     };
   } catch {
     return defaultConfig;
@@ -49,11 +49,19 @@ export function loadConfig(): ImportConfig {
 }
 
 export function saveConfig(config: ImportConfig): void {
-  window.localStorage.setItem(CONFIG_KEY, JSON.stringify({ ...config, password: "" }));
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
   saveRecent(config);
 }
 
 export function loadRecent(): RecentConfig {
+  if (typeof window === "undefined") {
+    return defaultRecent;
+  }
+
   const raw = window.localStorage.getItem(RECENT_KEY);
   if (!raw) {
     return defaultRecent;
@@ -84,6 +92,10 @@ function addRecentValue(values: string[], nextValue: string): string[] {
 }
 
 export function saveRecent(config: ImportConfig): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
   const recent = loadRecent();
   const nextRecent: RecentConfig = {
     restApiUrls: addRecentValue(recent.restApiUrls, config.restApiUrl),
