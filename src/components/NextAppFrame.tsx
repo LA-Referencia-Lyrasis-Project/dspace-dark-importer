@@ -7,7 +7,11 @@ import { I18nProvider } from "@/state/I18nContext";
 import { AppShell } from "@/components/AppShell";
 import { useTheme } from "@/hooks/useTheme";
 
-function stepForPath(pathname: string): number {
+function stepForPath(pathname: string): number | null {
+  if (pathname.startsWith("/how-it-works") || pathname.startsWith("/privacy-policy")) {
+    return null;
+  }
+
   if (pathname.startsWith("/validation")) {
     return 2;
   }

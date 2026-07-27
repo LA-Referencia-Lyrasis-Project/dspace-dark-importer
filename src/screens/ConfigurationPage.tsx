@@ -73,13 +73,13 @@ export function ConfigurationPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
       <Card>
         <CardHeader>
           <CardTitle>{t.configuration.title}</CardTitle>
           <CardDescription>{t.configuration.description}</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-5">
+        <CardContent className="grid gap-4">
           <Field label={t.configuration.restApiUrl} htmlFor="restApiUrl" error={errors.restApiUrl?.message}>
             <Input id="restApiUrl" list="recent-rest-urls" placeholder="https://repository.org/server" {...register("restApiUrl")} />
             <datalist id="recent-rest-urls">
@@ -98,7 +98,7 @@ export function ConfigurationPage() {
             </datalist>
           </Field>
 
-          <div className="grid gap-5">
+          <div className="grid gap-4">
             <Field label={t.configuration.metadataFieldToUpdate} htmlFor="metadataUpdateField" error={errors.metadataUpdateField?.message}>
               <Input id="metadataUpdateField" {...register("metadataUpdateField")} />
             </Field>
@@ -115,8 +115,8 @@ export function ConfigurationPage() {
           <CardTitle>{t.configuration.csvUploadTitle}</CardTitle>
           <CardDescription>{t.configuration.csvUploadDescription}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5">
-          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed bg-muted/40 px-4 py-8 text-center transition-colors hover:bg-muted">
+        <CardContent className="space-y-4">
+          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed bg-muted/40 px-4 py-6 text-center transition-colors hover:bg-muted">
             <FileUp className="mb-3 h-8 w-8 text-primary" />
             <span className="font-medium">{dataset ? dataset.filename : t.configuration.chooseCsvFile}</span>
             <span className="mt-1 text-sm text-muted-foreground">{t.configuration.csvOnly}</span>

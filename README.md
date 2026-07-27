@@ -1,10 +1,15 @@
-# DSpace dARK ID Importer
+# DSpace dARK ID Importer by LA Referencia
 
 A Next.js application for importing a CSV file and appending metadata to existing DSpace Items through the DSpace REST API. The initial workflow imports dARK IDs by searching for each generated Handle URI and appending a configurable metadata field.
+
+Source code: [LA-Referencia-Lyrasis-Project/dspace-darkid-importer](https://github.com/LA-Referencia-Lyrasis-Project/dspace-darkid-importer)
+
+Contact, feedback, and bug reports: [GitHub Issues](https://github.com/LA-Referencia-Lyrasis-Project/dspace-darkid-importer/issues)
 
 ## Features
 
 - Four-step workflow: Configuration, CSV Validation, Processing, Results
+- Built-in How It Works and Privacy Policy pages
 - OAI identifier to Handle URI conversion using a configured Handle base URL
 - DSpace REST authentication with a Bearer token
 - Per-row exact phrase Discovery search and JSON Patch metadata updates
@@ -124,6 +129,23 @@ http://localhost:4000/handle/123456789/268
 
 Before patching an item, the app checks the configured update field on the matched item. If the same value already exists, the row is recorded as `SKIPPED` and no PATCH request is sent.
 
+## How It Works
+
+The UI includes a `/how-it-works` page that explains the import flow:
+
+1. Configure the DSpace REST API URL, repository Handle base URL, Bearer token, and dARK ID metadata field.
+2. Upload a CSV file formatted with `oai_identifier,dark_id`.
+3. Validate the CSV before any DSpace item is changed.
+4. Process rows:
+   - 4.1 Verify whether the configured metadata field exists in DSpace and create it when missing.
+   - 4.2 For each row, build the Handle URI from the OAI identifier and search the item by that URI.
+   - 4.3 Append the metadata only when needed, skipping the row when the item already has the same dARK ID.
+5. Review the Results screen and download `report.csv`.
+
+## Privacy
+
+The UI includes a `/privacy-policy` page. The server only forwards requests to the DSpace API URL submitted in the UI and does not store CSV contents, Bearer tokens, DSpace API responses, or import reports. Browser Local Storage may keep configuration values, recent URLs, theme, and language preference.
+
 ## DSpace Versions
 
 The app targets DSpace 7 and newer REST APIs. It uses:
@@ -134,6 +156,10 @@ The app targets DSpace 7 and newer REST APIs. It uses:
 - `PATCH /api/core/items/{uuid}` with JSON Patch metadata updates
 
 The DSpace REST API must be reachable from the Next.js server.
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 only. See [LICENSE.txt](LICENSE.txt).
 
 ## Deployment
 

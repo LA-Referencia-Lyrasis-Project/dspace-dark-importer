@@ -9,6 +9,38 @@ export interface TranslationDictionary {
     portuguese: string;
     toggleTheme: string;
   };
+  footer: {
+    ariaLabel: string;
+    howItWorks: string;
+    privacyPolicy: string;
+    github: string;
+    feedback: string;
+    rightsReserved: string;
+  };
+  pages: {
+      howItWorks: {
+        title: string;
+        description: string;
+        stepsTitle: string;
+        steps: Array<{
+          title: string;
+          body: string;
+          details?: string[];
+        }>;
+      csvExampleTitle: string;
+      csvExampleDescription: string;
+      reportTitle: string;
+      reportBody: string;
+    };
+    privacy: {
+      title: string;
+      description: string;
+      sections: Array<{
+        title: string;
+        body: string;
+      }>;
+    };
+  };
   steps: {
     configuration: string;
     validation: string;
@@ -163,6 +195,82 @@ export const translations: Record<Language, TranslationDictionary> = {
       english: "English",
       portuguese: "Português",
       toggleTheme: "Toggle theme"
+    },
+    footer: {
+      ariaLabel: "Application links",
+      howItWorks: "How it works",
+      privacyPolicy: "Privacy Policy",
+      github: "GitHub",
+      feedback: "Contact, feedback, or bug",
+      rightsReserved: "All Rights Reserved."
+    },
+    pages: {
+      howItWorks: {
+        title: "How It Works",
+        description: "The importer follows a controlled five-step flow so each CSV row can succeed, skip, or fail independently.",
+        stepsTitle: "Import flow",
+        steps: [
+          {
+            title: "1. Configure the repository",
+            body: "Enter the DSpace REST API URL, the repository Handle base URL, the Bearer token, and the metadata field name used to store dARK IDs."
+          },
+          {
+            title: "2. Upload the CSV",
+            body: "Upload a .csv file with the headers oai_identifier and dark_id. Blank lines are ignored."
+          },
+          {
+            title: "3. Validate the CSV",
+            body: "The app checks required columns, empty values, duplicate OAI identifiers, malformed OAI identifiers, and duplicate dARK IDs as warnings."
+          },
+          {
+            title: "4. Process rows",
+            body: "The app processes each valid CSV row independently.",
+            details: [
+              "4.1 Verifies whether the configured metadata field exists in DSpace and creates it when missing.",
+              "4.2 For each row, it builds the Handle URI from the OAI identifier and searches the item by that URI.",
+              "4.3 Appends the metadata only when needed, and skips the row when the item already has the same dARK ID."
+            ]
+          },
+          {
+            title: "5. Review the report",
+            body: "The Results screen summarizes updated, skipped, not found, multiple match, and error counts, then lets you download report.csv for auditing."
+          }
+        ],
+        csvExampleTitle: "CSV format",
+        csvExampleDescription: "Use exactly these required headers:",
+        reportTitle: "Result report",
+        reportBody: "The report contains the original OAI identifier, generated URI, dARK ID, matched item UUID, item handle, final status, and message."
+      },
+      privacy: {
+        title: "Privacy Policy",
+        description: "This application is designed to run in your browser with a same-port Next.js proxy to your configured DSpace API.",
+        sections: [
+          {
+            title: "Data you provide",
+            body: "The app uses the DSpace REST API URL, repository Handle base URL, Bearer token, metadata field name, and uploaded CSV rows only to perform the import workflow."
+          },
+          {
+            title: "Browser local storage",
+            body: "User-provided data, such as the server URL, token, configuration values, theme, and language preference, is stored only in the user's browser local storage."
+          },
+          {
+            title: "DSpace token",
+            body: "The DSpace Dark ID Importer uses a Bearer token instead of asking for a username and password. This is safer because the app never needs to collect or transmit the user's password, and repository administrators can revoke or rotate tokens without changing the user's main credentials. Token validity is controlled by the DSpace server configuration and by the token's own expiration; the importer does not extend or renew it. When a token expires, DSpace will reject API requests and the user must provide a valid token again."
+          },
+          {
+            title: "Server",
+            body: "The server only forwards requests to the DSpace API URL submitted in the UI. It does not store CSV contents, Bearer tokens, DSpace API responses, or import reports."
+          },
+          {
+            title: "External services",
+            body: "The importer does not send repository data to the project GitHub repository. GitHub links are provided only for source code, feedback, and bug reports."
+          },
+          {
+            title: "Administrator responsibility",
+            body: "Repository administrators are responsible for using valid credentials, reviewing CSV contents before processing, and confirming that metadata updates comply with their institution's policies."
+          }
+        ]
+      }
     },
     steps: {
       configuration: "Configuration",
@@ -335,6 +443,82 @@ export const translations: Record<Language, TranslationDictionary> = {
       english: "English",
       portuguese: "Português",
       toggleTheme: "Alternar tema"
+    },
+    footer: {
+      ariaLabel: "Links da aplicação",
+      howItWorks: "Como funciona",
+      privacyPolicy: "Política de Privacidade",
+      github: "GitHub",
+      feedback: "Contato, feedback ou bug",
+      rightsReserved: "All Rights Reserved."
+    },
+    pages: {
+      howItWorks: {
+        title: "Como Funciona",
+        description: "O importador segue um fluxo controlado em cinco etapas para que cada linha do CSV possa ser atualizada, ignorada ou falhar de forma independente.",
+        stepsTitle: "Fluxo de importação",
+        steps: [
+          {
+            title: "1. Configure o repositório",
+            body: "Informe a URL da API REST do DSpace, a URL base do Handle do repositório, o token Bearer e o nome do campo de metadado usado para armazenar os dARK IDs."
+          },
+          {
+            title: "2. Envie o CSV",
+            body: "Envie um arquivo .csv com os cabeçalhos oai_identifier e dark_id. Linhas em branco são ignoradas."
+          },
+          {
+            title: "3. Valide o CSV",
+            body: "A aplicação verifica colunas obrigatórias, valores vazios, identificadores OAI duplicados, identificadores OAI malformados e dARK IDs duplicados como avisos."
+          },
+          {
+            title: "4. Processe as linhas",
+            body: "A aplicação processa cada linha válida do CSV de forma independente.",
+            details: [
+              "4.1 Verifica se o campo de metadado configurado existe no DSpace e o cria quando estiver ausente.",
+              "4.2 Para cada linha, gera a URI Handle a partir do identificador OAI e busca o item por essa URI.",
+              "4.3 Adiciona o metadado somente quando necessário, e ignora a linha quando o item já possui o mesmo dARK ID."
+            ]
+          },
+          {
+            title: "5. Revise o relatório",
+            body: "A tela de Resultados resume itens atualizados, ignorados, não encontrados, múltiplas correspondências e erros, e permite baixar o report.csv para auditoria."
+          }
+        ],
+        csvExampleTitle: "Formato do CSV",
+        csvExampleDescription: "Use exatamente estes cabeçalhos obrigatórios:",
+        reportTitle: "Relatório de resultado",
+        reportBody: "O relatório contém o identificador OAI original, a URI gerada, o dARK ID, o UUID do item encontrado, o handle do item, o status final e a mensagem."
+      },
+      privacy: {
+        title: "Política de Privacidade",
+        description: "Esta aplicação foi projetada para rodar no navegador com um proxy Next.js na mesma porta para a API DSpace configurada.",
+        sections: [
+          {
+            title: "Dados informados",
+            body: "A aplicação usa a URL da API REST do DSpace, a URL base do Handle do repositório, o token Bearer, o nome do campo de metadado e as linhas do CSV enviado apenas para executar o fluxo de importação."
+          },
+          {
+            title: "Armazenamento local do navegador",
+            body: "Os dados informados pelo usuário, como URL do servidor, token, valores de configuração, tema e preferência de idioma, são armazenados somente no armazenamento local do navegador do usuário."
+          },
+          {
+            title: "Token do DSpace",
+            body: "O Importador de dARK ID para DSpace usa um token Bearer em vez de solicitar usuário e senha. Isso é mais seguro porque a aplicação não precisa coletar nem transmitir a senha do usuário, e administradores do repositório podem revogar ou trocar tokens sem alterar as credenciais principais do usuário. A validade do token é controlada pela configuração do servidor DSpace e pela expiração do próprio token; o importador não estende nem renova essa validade. Quando o token expira, o DSpace rejeita as requisições da API e o usuário precisa informar um token válido novamente."
+          },
+          {
+            title: "Servidor",
+            body: "O servidor apenas encaminha as requisições para a URL da API DSpace informada na UI. Ele não armazena conteúdos do CSV, tokens Bearer, respostas da API DSpace nem relatórios de importação."
+          },
+          {
+            title: "Serviços externos",
+            body: "O importador não envia dados do repositório para o GitHub do projeto. Os links do GitHub são fornecidos apenas para código-fonte, feedback e relatos de bugs."
+          },
+          {
+            title: "Responsabilidade do administrador",
+            body: "Administradores do repositório são responsáveis por usar credenciais válidas, revisar o conteúdo do CSV antes do processamento e confirmar que as atualizações de metadados seguem as políticas da instituição."
+          }
+        ]
+      }
     },
     steps: {
       configuration: "Configuração",
