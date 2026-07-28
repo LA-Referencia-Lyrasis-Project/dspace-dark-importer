@@ -11,7 +11,8 @@
     "pm2:prod": "npm run build && pm2 start ecosystem.config.cjs --env production",
     "pm2:reload": "npm run build && pm2 reload ecosystem.config.cjs --env production",
     "pm2:stop": "pm2 stop dspace-darkid-import",
-    "build": "next build",
+    "build": "next build && npm run prepare:standalone",
+    "prepare:standalone": "node scripts/prepare-standalone.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

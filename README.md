@@ -45,7 +45,7 @@ npm run build
 
 The production build is generated in `.next/` and is served with `npm start`.
 
-Because the app uses Next.js standalone output, run `npm run build` before `npm start`.
+Because the app uses Next.js standalone output, run `npm run build` before `npm start`. The build script also copies `.next/static` and `public/` into `.next/standalone/` so the production server can serve JavaScript, CSS, icons, and other static assets.
 
 ## Tests
 
