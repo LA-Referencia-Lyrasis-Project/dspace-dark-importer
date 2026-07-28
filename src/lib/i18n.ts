@@ -12,6 +12,7 @@ export interface TranslationDictionary {
   footer: {
     ariaLabel: string;
     howItWorks: string;
+    tutorial: string;
     privacyPolicy: string;
     github: string;
     feedback: string;
@@ -40,6 +41,12 @@ export interface TranslationDictionary {
         body: string;
       }>;
     };
+      tutorial: {
+        title: string;
+        description: string;
+        videoLabel: string;
+        openOnYoutube: string;
+      };
   };
   steps: {
     configuration: string;
@@ -199,6 +206,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     footer: {
       ariaLabel: "Application links",
       howItWorks: "How it works",
+      tutorial: "Video tutorial",
       privacyPolicy: "Privacy Policy",
       github: "GitHub",
       feedback: "Contact, feedback, or bug",
@@ -270,6 +278,12 @@ export const translations: Record<Language, TranslationDictionary> = {
             body: "Repository administrators are responsible for using valid credentials, reviewing CSV contents before processing, and confirming that metadata updates comply with their institution's policies."
           }
         ]
+      },
+      tutorial: {
+        title: "Video Tutorial",
+        description: "Watch the tutorial to see how to configure the importer, upload the CSV, validate rows, process metadata updates, and review the report.",
+        videoLabel: "DSpace dARK ID Importer video tutorial",
+        openOnYoutube: "Open on YouTube"
       }
     },
     steps: {
@@ -447,6 +461,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     footer: {
       ariaLabel: "Links da aplicação",
       howItWorks: "Como funciona",
+      tutorial: "Tutorial em vídeo",
       privacyPolicy: "Política de Privacidade",
       github: "GitHub",
       feedback: "Contato, feedback ou bug",
@@ -518,6 +533,12 @@ export const translations: Record<Language, TranslationDictionary> = {
             body: "Administradores do repositório são responsáveis por usar credenciais válidas, revisar o conteúdo do CSV antes do processamento e confirmar que as atualizações de metadados seguem as políticas da instituição."
           }
         ]
+      },
+      tutorial: {
+        title: "Tutorial em Vídeo",
+        description: "Assista ao tutorial para ver como configurar o importador, enviar o CSV, validar as linhas, processar as atualizações de metadados e revisar o relatório.",
+        videoLabel: "Tutorial em vídeo do Importador de dARK ID para DSpace",
+        openOnYoutube: "Abrir no YouTube"
       }
     },
     steps: {

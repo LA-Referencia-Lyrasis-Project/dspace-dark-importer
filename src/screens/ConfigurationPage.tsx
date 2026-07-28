@@ -81,7 +81,7 @@ export function ConfigurationPage() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <Field label={t.configuration.restApiUrl} htmlFor="restApiUrl" error={errors.restApiUrl?.message}>
-            <Input id="restApiUrl" list="recent-rest-urls" placeholder="https://repository.org/server" {...register("restApiUrl")} />
+            <Input id="restApiUrl" list="recent-rest-urls" placeholder="https://deposita.ibict.br/server" {...register("restApiUrl")} />
             <datalist id="recent-rest-urls">
               {recent.restApiUrls.map((value) => (
                 <option key={value} value={value} />
@@ -100,7 +100,7 @@ export function ConfigurationPage() {
 
           <div className="grid gap-4">
             <Field label={t.configuration.metadataFieldToUpdate} htmlFor="metadataUpdateField" error={errors.metadataUpdateField?.message}>
-              <Input id="metadataUpdateField" {...register("metadataUpdateField")} />
+              <Input id="metadataUpdateField" {...register("metadataUpdateField")}  placeholder="dc.identifier.darkid"/>
             </Field>
           </div>
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { DatabaseZap, ExternalLink, Github, MessageSquare, ShieldCheck, Workflow } from "lucide-react";
+import { CirclePlay, DatabaseZap, ExternalLink, Github, MessageSquare, ShieldCheck, Workflow } from "lucide-react";
 import { Stepper } from "@/components/Stepper";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Select } from "@/components/ui/Select";
@@ -67,6 +67,10 @@ export function AppShell({ children, currentStep, theme, onToggleTheme }: AppShe
             <Link className="inline-flex min-w-0 max-w-full items-center gap-1.5 hover:text-foreground" href="/how-it-works">
               <Workflow className="h-4 w-4 shrink-0" />
               <span className="min-w-0 break-words">{t.footer.howItWorks}</span>
+            </Link>
+            <Link className="inline-flex min-w-0 max-w-full items-center gap-1.5 hover:text-foreground" href="/tutorial">
+              <CirclePlay className="h-4 w-4 shrink-0" />
+              <span className="min-w-0 break-words">{t.footer.tutorial}</span>
             </Link>
             <Link className="inline-flex min-w-0 max-w-full items-center gap-1.5 hover:text-foreground" href="/privacy-policy">
               <ShieldCheck className="h-4 w-4 shrink-0" />
