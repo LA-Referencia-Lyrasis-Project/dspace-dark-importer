@@ -1,6 +1,8 @@
 # DSpace dARK ID Importer by LA Referencia
 
-A Next.js application for importing a CSV file and appending metadata to existing DSpace Items through the DSpace REST API. The initial workflow imports dARK IDs by searching for each generated Handle URI and appending a configurable metadata field.
+Application for importing a CSV file and appending metadata to existing DSpace Items through the DSpace REST API. The initial workflow imports dARK IDs by searching for each generated Handle URI and appending a configurable metadata field.
+
+The DSpace dARK ID Importer works only with DSpace 7 and newer REST APIs.
 
 Source code: [LA-Referencia-Lyrasis-Project/dspace-darkid-importer](https://github.com/LA-Referencia-Lyrasis-Project/dspace-darkid-importer)
 
@@ -150,7 +152,7 @@ The UI includes a `/privacy-policy` page. The server only forwards requests to t
 
 ## DSpace Versions
 
-The app targets DSpace 7 and newer REST APIs. It uses:
+The app works only with DSpace 7 and newer REST APIs. It uses:
 
 - `GET /api/discover/search/objects?query="<generated-uri>"` for Discovery search
 - `GET /api/core/metadatafields` and `GET /api/core/metadataschemas` to verify the metadata registry

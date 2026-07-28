@@ -22,6 +22,8 @@ export interface TranslationDictionary {
       howItWorks: {
         title: string;
         description: string;
+        compatibilityTitle: string;
+        compatibilityBody: string;
         stepsTitle: string;
         steps: Array<{
           title: string;
@@ -216,6 +218,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       howItWorks: {
         title: "How It Works",
         description: "The importer follows a controlled five-step flow so each CSV row can succeed, skip, or fail independently.",
+        compatibilityTitle: "DSpace 7+ only",
+        compatibilityBody: "The DSpace dARK ID Importer works only with DSpace 7 and newer REST APIs. Earlier DSpace versions do not provide the required REST endpoints for Discovery search, metadata registry checks, and JSON Patch item updates.",
         stepsTitle: "Import flow",
         steps: [
           {
@@ -471,6 +475,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       howItWorks: {
         title: "Como Funciona",
         description: "O importador segue um fluxo controlado em cinco etapas para que cada linha do CSV possa ser atualizada, ignorada ou falhar de forma independente.",
+        compatibilityTitle: "Somente DSpace 7+",
+        compatibilityBody: "O Importador de dARK ID para DSpace funciona somente com as APIs REST do DSpace 7 ou superior. Versões anteriores do DSpace não oferecem os endpoints REST necessários para busca Discovery, verificação do registro de metadados e atualização de itens com JSON Patch.",
         stepsTitle: "Fluxo de importação",
         steps: [
           {

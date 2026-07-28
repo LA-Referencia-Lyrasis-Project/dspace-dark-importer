@@ -14,6 +14,11 @@ export function HowItWorksPage() {
         <p className="max-w-3xl text-muted-foreground">{t.pages.howItWorks.description}</p>
       </section>
 
+      <section className="rounded-md border border-accent/40 bg-accent/10 p-4">
+        <h2 className="font-semibold">{t.pages.howItWorks.compatibilityTitle}</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{t.pages.howItWorks.compatibilityBody}</p>
+      </section>
+
       <Card>
         <CardHeader>
           <CardTitle>{t.pages.howItWorks.stepsTitle}</CardTitle>
