@@ -33,7 +33,7 @@ Open the URL printed by Next.js.
 
 ## Backend Proxy
 
-All DSpace API calls go through the Next.js API route at `/api/dspace/proxy`. The browser calls the app on one origin, and the server calls DSpace from Node.js, so DSpace CORS configuration is not required for the import UI.
+All DSpace API calls go through the Next.js API route at `/api/dspace/proxy` or `<basePath>/api/dspace/proxy` when a base path is configured. The browser calls the app on one origin, and the server calls DSpace from Node.js, so DSpace CORS configuration is not required for the import UI.
 
 Use `npm run dev` for local development and `npm run start:prod` for production.
 
@@ -187,6 +187,7 @@ Server runtime:
 - `NODE_ENV`: use `production` for deployments.
 - `PORT`: HTTP port. Default: `8787`.
 - `HOSTNAME`: bind host used by the Next.js standalone server. Use `0.0.0.0` when exposing the app outside localhost.
+- `NEXT_PUBLIC_BASE_PATH`: optional deployment subpath, for example `/dark-importer`. This value is used for Next.js `basePath` and `assetPrefix`, so set it before running `npm run build`.
 - `REQUEST_BODY_LIMIT_BYTES`: max JSON body accepted by the proxy. Default: `1048576`.
 - `PROXY_RESPONSE_LIMIT_BYTES`: max DSpace response body accepted by the proxy. Default: `26214400`.
 - `PROXY_TIMEOUT_MS`: DSpace request timeout. Default: `30000`.

@@ -1,4 +1,5 @@
 import type { DSpaceItem, DSpaceMetadataValue, ImportConfig } from "@/types";
+import { withBasePath } from "@/lib/basePath";
 import { HttpError, NetworkError, withRetry } from "@/lib/retry";
 
 export interface DSpaceClient {
@@ -223,7 +224,7 @@ function isCsrfHttpError(error: unknown): error is HttpError {
 
 export function createDSpaceClient(config: ImportConfig, signal?: AbortSignal): DSpaceClient {
   const baseUrl = normalizeRestApiUrl(config.restApiUrl);
-  const proxyUrl = "/api/dspace/proxy";
+  const proxyUrl = withBasePath("/api/dspace/proxy");
   const authToken = config.bearerToken.trim().replace(/^Bearer\s+/i, "");
   let csrfToken = "";
 
