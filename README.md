@@ -47,6 +47,8 @@ The production build is generated in `.next/` and is served with `npm start`.
 
 Because the app uses Next.js standalone output, run `npm run build` before `npm start`. The build script also copies `.next/static` and `public/` into `.next/standalone/` so the production server can serve JavaScript, CSS, icons, and other static assets.
 
+`npm start`, `npm run start:prod`, and the PM2 scripts load `.env` at runtime before starting the standalone server. Environment variables already exported in the shell or supplied by PM2 take priority over `.env`.
+
 ## Tests
 
 ```bash

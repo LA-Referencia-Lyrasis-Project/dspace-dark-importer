@@ -2,7 +2,8 @@ module.exports = {
   apps: [
     {
       name: "dspace-darkid-import",
-      script: ".next/standalone/server.js",
+      script: "scripts/start-standalone.mjs",
+      interpreter: "node",
       exec_mode: "fork",
       instances: 1,
       env: {
