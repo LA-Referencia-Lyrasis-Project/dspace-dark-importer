@@ -18,7 +18,7 @@ export function createConfigurationSchema(messages: ValidatorMessages = translat
       handleBaseUrl: z.string().trim().url(messages.handleBaseUrl),
       bearerToken: z.string().trim().min(1, messages.bearerToken),
       metadataSearchField: metadataFieldSchema(messages).default("dc.identifier.uri"),
-      metadataUpdateField: metadataFieldSchema(messages).default("dc.identifier.darkid")
+      metadataUpdateField: metadataFieldSchema(messages).default("dc.identifier.dark")
     });
 }
 

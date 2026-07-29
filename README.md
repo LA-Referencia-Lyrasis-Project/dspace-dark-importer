@@ -1,8 +1,8 @@
-# DSpace dARK ID Importer by LA Referencia
+# DSpace dARK Importer by LA Referencia
 
-Application for importing a CSV file and appending metadata to existing DSpace Items through the DSpace REST API. The initial workflow imports dARK IDs by searching for each generated Handle URI and appending a configurable metadata field.
+Application for importing a CSV file and appending metadata to existing DSpace Items through the DSpace REST API. The initial workflow imports dARKs by searching for each generated Handle URI and appending a configurable metadata field.
 
-The DSpace dARK ID Importer works only with DSpace 7 and newer REST APIs.
+The DSpace dARK Importer works only with DSpace 7 and newer REST APIs.
 
 Source code: [LA-Referencia-Lyrasis-Project/dspace-darkid-importer](https://github.com/LA-Referencia-Lyrasis-Project/dspace-darkid-importer)
 
@@ -75,9 +75,9 @@ For modifying requests, DSpace requires JSON Patch and CSRF protection for `PATC
 
 - DSpace REST API URL: the base server URL, for example `https://repository.org/server`.
 - Repository Handle Base URL: the URL used to construct `dc.identifier.uri`, for example `https://deposita.ibict.br/handle/`.
-- Metadata Field to Update: defaults to `dc.identifier.darkid`.
+- Metadata Field to Update: defaults to `dc.identifier.dark`.
 
-If the update field does not exist, the app creates it using `POST /api/core/metadatafields?schemaId=<schemaId>`. This requires an administrator token because DSpace only allows admins to modify the metadata registry. The schema prefix, such as `dc` in `dc.identifier.darkid`, must already exist.
+If the update field does not exist, the app creates it using `POST /api/core/metadatafields?schemaId=<schemaId>`. This requires an administrator token because DSpace only allows admins to modify the metadata registry. The schema prefix, such as `dc` in `dc.identifier.dark`, must already exist.
 
 Item lookup uses the DSpace Discovery search endpoint with the generated Handle URI as an exact phrase query, for example:
 
@@ -97,7 +97,7 @@ oai:deposita.ibict.br:deposita/635,dark:abcd123
 oai:repositorio.bc.ufg.br:tede/10757,dark:efgh456
 ```
 
-Blank lines are ignored. Validation blocks processing when required columns are missing, values are empty, OAI identifiers are malformed, or OAI identifiers are duplicated. Duplicate dARK IDs are displayed as warnings.
+Blank lines are ignored. Validation blocks processing when required columns are missing, values are empty, OAI identifiers are malformed, or OAI identifiers are duplicated. Duplicate dARKs are displayed as warnings.
 
 ## OAI Conversion
 
@@ -137,13 +137,13 @@ Before patching an item, the app checks the configured update field on the match
 
 The UI includes a `/how-it-works` page that explains the import flow:
 
-1. Configure the DSpace REST API URL, repository Handle base URL, Bearer token, and dARK ID metadata field.
+1. Configure the DSpace REST API URL, repository Handle base URL, Bearer token, and dARK metadata field.
 2. Upload a CSV file formatted with `oai_identifier,dark_id`.
 3. Validate the CSV before any DSpace item is changed.
 4. Process rows:
    - 4.1 Verify whether the configured metadata field exists in DSpace and create it when missing.
    - 4.2 For each row, build the Handle URI from the OAI identifier and search the item by that URI.
-   - 4.3 Append the metadata only when needed, skipping the row when the item already has the same dARK ID.
+   - 4.3 Append the metadata only when needed, skipping the row when the item already has the same dARK.
 5. Review the Results screen and download `report.csv`.
 
 ## Privacy

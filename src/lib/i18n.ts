@@ -198,7 +198,7 @@ export interface TranslationDictionary {
 export const translations: Record<Language, TranslationDictionary> = {
   en: {
     app: {
-      title: "DSpace Dark ID Importer",
+      title: "DSpace Dark Importer",
       subtitle: "Bulk append metadata to existing items",
       languageLabel: "Language",
       english: "English",
@@ -219,12 +219,12 @@ export const translations: Record<Language, TranslationDictionary> = {
         title: "How It Works",
         description: "The importer follows a controlled five-step flow so each CSV row can succeed, skip, or fail independently.",
         compatibilityTitle: "DSpace 7+ only",
-        compatibilityBody: "The DSpace dARK ID Importer works only with DSpace 7 and newer REST APIs. Earlier DSpace versions do not provide the required REST endpoints for Discovery search, metadata registry checks, and JSON Patch item updates.",
+        compatibilityBody: "The DSpace dARK Importer works only with DSpace 7 and newer REST APIs. Earlier DSpace versions do not provide the required REST endpoints for Discovery search, metadata registry checks, and JSON Patch item updates.",
         stepsTitle: "Import flow",
         steps: [
           {
             title: "1. Configure the repository",
-            body: "Enter the DSpace REST API URL, the repository Handle base URL, the Bearer token, and the metadata field name used to store dARK IDs."
+            body: "Enter the DSpace REST API URL, the repository Handle base URL, the Bearer token, and the metadata field name used to store dARKs."
           },
           {
             title: "2. Upload the CSV",
@@ -232,7 +232,7 @@ export const translations: Record<Language, TranslationDictionary> = {
           },
           {
             title: "3. Validate the CSV",
-            body: "The app checks required columns, empty values, duplicate OAI identifiers, malformed OAI identifiers, and duplicate dARK IDs as warnings."
+            body: "The app checks required columns, empty values, duplicate OAI identifiers, malformed OAI identifiers, and duplicate dARKs as warnings."
           },
           {
             title: "4. Process rows",
@@ -240,7 +240,7 @@ export const translations: Record<Language, TranslationDictionary> = {
             details: [
               "4.1 Verifies whether the configured metadata field exists in DSpace and creates it when missing.",
               "4.2 For each row, it builds the Handle URI from the OAI identifier and searches the item by that URI.",
-              "4.3 Appends the metadata only when needed, and skips the row when the item already has the same dARK ID."
+              "4.3 Appends the metadata only when needed, and skips the row when the item already has the same dARK."
             ]
           },
           {
@@ -251,7 +251,7 @@ export const translations: Record<Language, TranslationDictionary> = {
         csvExampleTitle: "CSV format",
         csvExampleDescription: "Use exactly these required headers:",
         reportTitle: "Result report",
-        reportBody: "The report contains the original OAI identifier, generated URI, dARK ID, matched item UUID, item handle, final status, and message."
+        reportBody: "The report contains the original OAI identifier, generated URI, dARK, matched item UUID, item handle, final status, and message."
       },
       privacy: {
         title: "Privacy Policy",
@@ -267,7 +267,7 @@ export const translations: Record<Language, TranslationDictionary> = {
           },
           {
             title: "DSpace token",
-            body: "The DSpace Dark ID Importer uses a Bearer token instead of asking for a username and password. This is safer because the app never needs to collect or transmit the user's password, and repository administrators can revoke or rotate tokens without changing the user's main credentials. Token validity is controlled by the DSpace server configuration and by the token's own expiration; the importer does not extend or renew it. When a token expires, DSpace will reject API requests and the user must provide a valid token again."
+            body: "The DSpace Dark Importer uses a Bearer token instead of asking for a username and password. This is safer because the app never needs to collect or transmit the user's password, and repository administrators can revoke or rotate tokens without changing the user's main credentials. Token validity is controlled by the DSpace server configuration and by the token's own expiration; the importer does not extend or renew it. When a token expires, DSpace will reject API requests and the user must provide a valid token again."
           },
           {
             title: "Server",
@@ -286,7 +286,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       tutorial: {
         title: "Video Tutorial",
         description: "Watch the tutorial to see how to configure the importer, upload the CSV, validate rows, process metadata updates, and review the report.",
-        videoLabel: "DSpace dARK ID Importer video tutorial",
+        videoLabel: "DSpace dARK Importer video tutorial",
         openOnYoutube: "Open on YouTube"
       }
     },
@@ -391,7 +391,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       columns: {
         oaiIdentifier: "OAI Identifier",
         generatedUri: "Generated URI",
-        darkId: "dARK ID",
+        darkId: "dARK",
         itemUuid: "Item UUID",
         status: "Status",
         message: "Message"
@@ -404,9 +404,9 @@ export const translations: Record<Language, TranslationDictionary> = {
       missingRequiredColumn: (column) => `Missing required column "${column}".`,
       oaiIdentifierRequired: "OAI identifier is required.",
       malformedOaiIdentifier: "Malformed OAI identifier.",
-      darkIdRequired: "dARK ID is required.",
+      darkIdRequired: "dARK is required.",
       duplicateOaiIdentifier: (identifier, rows) => `Duplicate OAI identifier "${identifier}" appears on rows ${rows}.`,
-      duplicateDarkId: (darkId, rows) => `Duplicate dARK ID "${darkId}" appears on rows ${rows}.`
+      duplicateDarkId: (darkId, rows) => `Duplicate dARK "${darkId}" appears on rows ${rows}.`
     },
     validators: {
       metadataFieldRequired: "Metadata field is required.",
@@ -455,7 +455,7 @@ export const translations: Record<Language, TranslationDictionary> = {
   },
   pt: {
     app: {
-      title: "Importador de dARK ID para DSpace",
+      title: "Importador de dARK para DSpace",
       subtitle: "Adicione metadados em lote a itens existentes",
       languageLabel: "Idioma",
       english: "English",
@@ -476,12 +476,12 @@ export const translations: Record<Language, TranslationDictionary> = {
         title: "Como Funciona",
         description: "O importador segue um fluxo controlado em cinco etapas para que cada linha do CSV possa ser atualizada, ignorada ou falhar de forma independente.",
         compatibilityTitle: "Somente DSpace 7+",
-        compatibilityBody: "O Importador de dARK ID para DSpace funciona somente com as APIs REST do DSpace 7 ou superior. Versões anteriores do DSpace não oferecem os endpoints REST necessários para busca Discovery, verificação do registro de metadados e atualização de itens com JSON Patch.",
+        compatibilityBody: "O Importador de dARK para DSpace funciona somente com as APIs REST do DSpace 7 ou superior. Versões anteriores do DSpace não oferecem os endpoints REST necessários para busca Discovery, verificação do registro de metadados e atualização de itens com JSON Patch.",
         stepsTitle: "Fluxo de importação",
         steps: [
           {
             title: "1. Configure o repositório",
-            body: "Informe a URL da API REST do DSpace, a URL base do Handle do repositório, o token Bearer e o nome do campo de metadado usado para armazenar os dARK IDs."
+            body: "Informe a URL da API REST do DSpace, a URL base do Handle do repositório, o token Bearer e o nome do campo de metadado usado para armazenar os dARKs."
           },
           {
             title: "2. Envie o CSV",
@@ -489,7 +489,7 @@ export const translations: Record<Language, TranslationDictionary> = {
           },
           {
             title: "3. Valide o CSV",
-            body: "A aplicação verifica colunas obrigatórias, valores vazios, identificadores OAI duplicados, identificadores OAI malformados e dARK IDs duplicados como avisos."
+            body: "A aplicação verifica colunas obrigatórias, valores vazios, identificadores OAI duplicados, identificadores OAI malformados e dARKs duplicados como avisos."
           },
           {
             title: "4. Processe as linhas",
@@ -497,7 +497,7 @@ export const translations: Record<Language, TranslationDictionary> = {
             details: [
               "4.1 Verifica se o campo de metadado configurado existe no DSpace e o cria quando estiver ausente.",
               "4.2 Para cada linha, gera a URI Handle a partir do identificador OAI e busca o item por essa URI.",
-              "4.3 Adiciona o metadado somente quando necessário, e ignora a linha quando o item já possui o mesmo dARK ID."
+              "4.3 Adiciona o metadado somente quando necessário, e ignora a linha quando o item já possui o mesmo dARK."
             ]
           },
           {
@@ -508,7 +508,7 @@ export const translations: Record<Language, TranslationDictionary> = {
         csvExampleTitle: "Formato do CSV",
         csvExampleDescription: "Use exatamente estes cabeçalhos obrigatórios:",
         reportTitle: "Relatório de resultado",
-        reportBody: "O relatório contém o identificador OAI original, a URI gerada, o dARK ID, o UUID do item encontrado, o handle do item, o status final e a mensagem."
+        reportBody: "O relatório contém o identificador OAI original, a URI gerada, o dARK, o UUID do item encontrado, o handle do item, o status final e a mensagem."
       },
       privacy: {
         title: "Política de Privacidade",
@@ -524,7 +524,7 @@ export const translations: Record<Language, TranslationDictionary> = {
           },
           {
             title: "Token do DSpace",
-            body: "O Importador de dARK ID para DSpace usa um token Bearer em vez de solicitar usuário e senha. Isso é mais seguro porque a aplicação não precisa coletar nem transmitir a senha do usuário, e administradores do repositório podem revogar ou trocar tokens sem alterar as credenciais principais do usuário. A validade do token é controlada pela configuração do servidor DSpace e pela expiração do próprio token; o importador não estende nem renova essa validade. Quando o token expira, o DSpace rejeita as requisições da API e o usuário precisa informar um token válido novamente."
+            body: "O Importador de dARK para DSpace usa um token Bearer em vez de solicitar usuário e senha. Isso é mais seguro porque a aplicação não precisa coletar nem transmitir a senha do usuário, e administradores do repositório podem revogar ou trocar tokens sem alterar as credenciais principais do usuário. A validade do token é controlada pela configuração do servidor DSpace e pela expiração do próprio token; o importador não estende nem renova essa validade. Quando o token expira, o DSpace rejeita as requisições da API e o usuário precisa informar um token válido novamente."
           },
           {
             title: "Servidor",
@@ -543,7 +543,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       tutorial: {
         title: "Tutorial em Vídeo",
         description: "Assista ao tutorial para ver como configurar o importador, enviar o CSV, validar as linhas, processar as atualizações de metadados e revisar o relatório.",
-        videoLabel: "Tutorial em vídeo do Importador de dARK ID para DSpace",
+        videoLabel: "Tutorial em vídeo do Importador de dARK para DSpace",
         openOnYoutube: "Abrir no YouTube"
       }
     },
@@ -648,7 +648,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       columns: {
         oaiIdentifier: "Identificador OAI",
         generatedUri: "URI gerada",
-        darkId: "dARK ID",
+        darkId: "dARK",
         itemUuid: "UUID do item",
         status: "Status",
         message: "Mensagem"
@@ -661,9 +661,9 @@ export const translations: Record<Language, TranslationDictionary> = {
       missingRequiredColumn: (column) => `Coluna obrigatória ausente "${column}".`,
       oaiIdentifierRequired: "O identificador OAI é obrigatório.",
       malformedOaiIdentifier: "Identificador OAI malformado.",
-      darkIdRequired: "O dARK ID é obrigatório.",
+      darkIdRequired: "O dARK é obrigatório.",
       duplicateOaiIdentifier: (identifier, rows) => `O identificador OAI duplicado "${identifier}" aparece nas linhas ${rows}.`,
-      duplicateDarkId: (darkId, rows) => `O dARK ID duplicado "${darkId}" aparece nas linhas ${rows}.`
+      duplicateDarkId: (darkId, rows) => `O dARK duplicado "${darkId}" aparece nas linhas ${rows}.`
     },
     validators: {
       metadataFieldRequired: "O campo de metadado é obrigatório.",

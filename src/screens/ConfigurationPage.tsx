@@ -100,7 +100,7 @@ export function ConfigurationPage() {
 
           <div className="grid gap-4">
             <Field label={t.configuration.metadataFieldToUpdate} htmlFor="metadataUpdateField" error={errors.metadataUpdateField?.message}>
-              <Input id="metadataUpdateField" {...register("metadataUpdateField")}  placeholder="dc.identifier.darkid"/>
+              <Input id="metadataUpdateField" {...register("metadataUpdateField")}  placeholder="dc.identifier.dark"/>
             </Field>
           </div>
 

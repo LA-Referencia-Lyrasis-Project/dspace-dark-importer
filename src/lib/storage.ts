@@ -8,7 +8,7 @@ export const defaultConfig: ImportConfig = {
   handleBaseUrl: "",
   bearerToken: "",
   metadataSearchField: "dc.identifier.uri",
-  metadataUpdateField: "dc.identifier.darkid"
+  metadataUpdateField: "dc.identifier.dark"
 };
 
 const defaultRecent: RecentConfig = {
