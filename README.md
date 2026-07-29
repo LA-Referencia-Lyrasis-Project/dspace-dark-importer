@@ -75,7 +75,7 @@ For modifying requests, DSpace requires JSON Patch and CSRF protection for `PATC
 
 - DSpace REST API URL: the base server URL, for example `https://repository.org/server`.
 - Repository Handle Base URL: the URL used to construct `dc.identifier.uri`, for example `https://deposita.ibict.br/handle/`.
-- Metadata Field to Update: defaults to `dc.identifier.dark`.
+- Metadata field to update: defaults to `dc.identifier.dark`.
 
 If the update field does not exist, the app creates it using `POST /api/core/metadatafields?schemaId=<schemaId>`. This requires an administrator token because DSpace only allows admins to modify the metadata registry. The schema prefix, such as `dc` in `dc.identifier.dark`, must already exist.
 
