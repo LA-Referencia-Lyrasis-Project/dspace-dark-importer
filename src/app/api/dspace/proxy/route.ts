@@ -8,6 +8,7 @@ const RESPONSE_LIMIT_BYTES = Number(process.env.PROXY_RESPONSE_LIMIT_BYTES ?? 25
 const PROXY_TIMEOUT_MS = Number(process.env.PROXY_TIMEOUT_MS ?? 30000);
 const PROXY_SESSION_COOKIE = "dspace_import_proxy_sid";
 const PROXY_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
+const NULL_BODY_STATUS_CODES = new Set([204, 205, 304]);
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
@@ -262,7 +263,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       durationMs: Date.now() - startedAt
     });
 
-    return new Response(body, {
+    return new Response(NULL_BODY_STATUS_CODES.has(dspaceResponse.status) ? null : body, {
       status: dspaceResponse.status,
       headers: responseHeaders
     });
