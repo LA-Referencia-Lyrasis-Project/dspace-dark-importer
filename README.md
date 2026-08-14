@@ -4,9 +4,9 @@ Application for importing a CSV file and appending metadata to existing DSpace I
 
 The DSpace dARK Importer works only with DSpace 7 and newer REST APIs.
 
-Source code: [LA-Referencia-Lyrasis-Project/dspace-darkid-importer](https://github.com/LA-Referencia-Lyrasis-Project/dspace-darkid-importer)
+Source code: [LA-Referencia-Lyrasis-Project/dspace-dark-importer](https://github.com/LA-Referencia-Lyrasis-Project/dspace-dark-importer)
 
-Contact, feedback, and bug reports: [GitHub Issues](https://github.com/LA-Referencia-Lyrasis-Project/dspace-darkid-importer/issues)
+Contact, feedback, and bug reports: [GitHub Issues](https://github.com/LA-Referencia-Lyrasis-Project/dspace-dark-importer/issues)
 
 ## Features
 
