@@ -83,8 +83,7 @@ export function ProcessingPage() {
           {[
             [t.processing.stats.total, importer.stats.total],
             [t.processing.stats.processed, importer.stats.processed],
-            [t.processing.stats.updated, importer.stats.updated],
-            [t.processing.stats.skipped, importer.stats.skipped],
+            [t.processing.stats.readyForExport, importer.stats.readyForExport],
             [t.processing.stats.notFound, importer.stats.notFound],
             [t.processing.stats.multiple, importer.stats.multipleMatches],
             [t.processing.stats.errors, importer.stats.errors],

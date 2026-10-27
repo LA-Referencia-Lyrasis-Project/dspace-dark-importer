@@ -9,7 +9,7 @@ import type {
   ProcessingStats
 } from "@/types";
 import { createDSpaceClient } from "@/lib/dspace";
-import { buildHandleUri } from "@/lib/oai";
+import { buildHandleUri, extractHandleSuffix } from "@/lib/oai";
 import { HttpError, NetworkError } from "@/lib/retry";
 import { translations, type TranslationDictionary } from "@/lib/i18n";
 
@@ -27,8 +27,7 @@ interface ImporterState {
 const initialStats: ProcessingStats = {
   total: 0,
   processed: 0,
-  updated: 0,
-  skipped: 0,
+  readyForExport: 0,
   notFound: 0,
   multipleMatches: 0,
   errors: 0,
@@ -73,7 +72,7 @@ function reportFor(row: CsvImportRow, generatedUri: string, status: ImportStatus
   return {
     oai_identifier: row.oaiIdentifier,
     generated_uri: generatedUri,
-    dark_id: row.darkId,
+    dark: row.darkId,
     item_uuid: item?.uuid ?? "",
     item_handle: item?.handle ?? "",
     status,
@@ -87,11 +86,6 @@ function generatedUriForReport(row: CsvImportRow, handleBaseUrl: string): string
   } catch {
     return "";
   }
-}
-
-function itemAlreadyHasMetadataValue(item: DSpaceItem, metadataField: string, value: string): boolean {
-  const normalizedValue = value.trim();
-  return (item.metadata[metadataField] ?? []).some((metadataValue) => metadataValue.value.trim() === normalizedValue);
 }
 
 export function useImporter(config: ImportConfig, rows: CsvImportRow[], messages: TranslationDictionary["importer"] = translations.en.importer) {
@@ -127,8 +121,7 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[], messages
 
   const recordResult = useCallback((result: ImportReportRow) => {
     setState((current) => {
-      const updated = result.status === "UPDATED" ? current.stats.updated + 1 : current.stats.updated;
-      const skipped = result.status === "SKIPPED" ? current.stats.skipped + 1 : current.stats.skipped;
+      const readyForExport = result.status === "READY FOR EXPORT" ? current.stats.readyForExport + 1 : current.stats.readyForExport;
       const notFound = result.status === "NOT FOUND" ? current.stats.notFound + 1 : current.stats.notFound;
       const multipleMatches = result.status === "MULTIPLE MATCHES" ? current.stats.multipleMatches + 1 : current.stats.multipleMatches;
       const errors = ["API ERROR", "VALIDATION ERROR", "AUTHENTICATION ERROR", "NETWORK ERROR"].includes(result.status)
@@ -142,8 +135,7 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[], messages
         stats: {
           ...current.stats,
           processed,
-          updated,
-          skipped,
+          readyForExport,
           notFound,
           multipleMatches,
           errors,
@@ -171,51 +163,6 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[], messages
       reportRows: []
     });
 
-    try {
-      await client.authenticate();
-      appendLog(createLog("success", messages.bearerConfigured));
-    } catch (error) {
-      const now = Date.now();
-      const message = translatedMessageFromError(error, messages);
-      const authReportRows = rows.map((row) => reportFor(row, generatedUriForReport(row, config.handleBaseUrl), "AUTHENTICATION ERROR", message));
-
-      setState((current) => ({
-        ...current,
-        status: "completed",
-        finishedAt: now,
-        stats: { ...current.stats, errors: rows.length, processed: rows.length, remaining: 0 },
-        logs: [...current.logs, createLog("error", message)],
-        reportRows: authReportRows
-      }));
-      abortControllerRef.current = null;
-      return;
-    }
-
-    try {
-      const metadataFieldResult = await client.ensureMetadataField(config.metadataUpdateField);
-      appendLog(
-        createLog(
-          "success",
-          metadataFieldResult.created
-            ? messages.metadataFieldCreated(config.metadataUpdateField)
-            : messages.metadataFieldVerified(config.metadataUpdateField)
-        )
-      );
-    } catch (error) {
-      const now = Date.now();
-      const message = translatedMessageFromError(error, messages);
-      setState((current) => ({
-        ...current,
-        status: "completed",
-        finishedAt: now,
-        stats: { ...current.stats, errors: rows.length, processed: rows.length, remaining: 0 },
-        logs: [...current.logs, createLog("error", message)],
-        reportRows: rows.map((row) => reportFor(row, generatedUriForReport(row, config.handleBaseUrl), "VALIDATION ERROR", message))
-      }));
-      abortControllerRef.current = null;
-      return;
-    }
-
     setState((current) => ({ ...current, status: "processing" }));
 
     for (const row of rows) {
@@ -230,7 +177,17 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[], messages
         generatedUri = buildHandleUri(row.oaiIdentifier, config.handleBaseUrl);
         appendLog(createLog("info", messages.searchingItem(generatedUri), row.rowNumber));
 
-        const matches = await client.searchItemByMetadata(config.metadataSearchField, generatedUri);
+        const handle = extractHandleSuffix(row.oaiIdentifier);
+        const resolution = await client.resolveObjectByHandle(handle, generatedUri);
+        const matches = resolution.objects;
+
+        appendLog(
+          createLog(
+            resolution.source === "pid" ? "success" : "warning",
+            resolution.source === "pid" ? messages.pidResolved(handle) : messages.discoveryFallback(handle),
+            row.rowNumber
+          )
+        );
 
         if (matches.length === 0) {
           appendLog(createLog("warning", messages.itemNotFound, row.rowNumber));
@@ -247,15 +204,8 @@ export function useImporter(config: ImportConfig, rows: CsvImportRow[], messages
         const item = matches[0];
         appendLog(createLog("success", messages.itemFound(item.uuid), row.rowNumber));
 
-        if (itemAlreadyHasMetadataValue(item, config.metadataUpdateField, row.darkId)) {
-          appendLog(createLog("info", messages.metadataAlreadyExistsLog, row.rowNumber));
-          recordResult(reportFor(row, generatedUri, "SKIPPED", messages.metadataAlreadyExistsReport, item));
-          continue;
-        }
-
-        await client.updateItemMetadata(item, config.metadataUpdateField, row.darkId);
-        appendLog(createLog("success", messages.metadataUpdated, row.rowNumber));
-        recordResult(reportFor(row, generatedUri, "UPDATED", messages.metadataAppended, item));
+        appendLog(createLog("success", messages.readyForExport, row.rowNumber));
+        recordResult(reportFor(row, generatedUri, "READY FOR EXPORT", messages.readyForExport, item));
       } catch (error) {
         if (abortController.signal.aborted) {
           appendLog(createLog("warning", messages.importCancelled));

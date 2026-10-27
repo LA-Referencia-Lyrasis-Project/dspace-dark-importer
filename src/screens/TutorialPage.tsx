@@ -17,6 +17,20 @@ export function TutorialPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>{t.pages.tutorial.prerequisiteTitle}</CardTitle>
+          <CardDescription>{t.pages.tutorial.prerequisiteBody}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-muted-foreground">
+            {t.pages.tutorial.workflow.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <CirclePlay className="h-5 w-5" />

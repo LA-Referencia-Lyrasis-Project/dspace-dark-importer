@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useAppContext } from "@/state/AppContext";
 import { useI18n } from "@/state/I18nContext";
-import { downloadReport } from "@/lib/report";
+import { downloadItemsDarks, downloadReport } from "@/lib/report";
 import { formatDuration } from "@/lib/utils";
 
 export function ResultsPage() {
@@ -15,8 +15,7 @@ export function ResultsPage() {
   const { language, t } = useI18n();
   const rows = results.rows;
   const numberLocale = language === "pt" ? "pt-BR" : "en-US";
-  const updated = rows.filter((row) => row.status === "UPDATED").length;
-  const skipped = rows.filter((row) => row.status === "SKIPPED").length;
+  const readyForExport = rows.filter((row) => row.status === "READY FOR EXPORT").length;
   const notFound = rows.filter((row) => row.status === "NOT FOUND").length;
   const multipleMatches = rows.filter((row) => row.status === "MULTIPLE MATCHES").length;
   const errors = rows.filter((row) => ["API ERROR", "VALIDATION ERROR", "AUTHENTICATION ERROR", "NETWORK ERROR"].includes(row.status)).length;
@@ -44,8 +43,7 @@ export function ResultsPage() {
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7">
           {[
             [t.common.totalRows, rows.length],
-            [t.common.updated, updated],
-            [t.common.skipped, skipped],
+            [t.common.readyForExport, readyForExport],
             [t.common.notFound, notFound],
             [t.common.multiple, multipleMatches],
             [t.common.errors, errors],
@@ -75,18 +73,16 @@ export function ResultsPage() {
                 <tr key={`${row.oai_identifier}-${index}`} className="border-t align-top">
                   <td className="max-w-[220px] px-4 py-3 overflow-x-auto">{row.oai_identifier}</td>
                   <td className="max-w-[260px] px-4 py-3 overflow-x-auto">{row.generated_uri}</td>
-                  <td className="px-4 py-3 overflow-x-auto">{row.dark_id}</td>
+                  <td className="px-4 py-3 overflow-x-auto">{row.dark}</td>
                   <td className="px-4 py-3 overflow-x-auto">{row.item_uuid || "-"}</td>
                   <td className="px-4 py-3">
                     <Badge
                       tone={
-                        row.status === "UPDATED"
+                        row.status === "READY FOR EXPORT"
                           ? "success"
-                          : row.status === "SKIPPED"
-                            ? "muted"
-                            : row.status === "NOT FOUND" || row.status === "MULTIPLE MATCHES"
-                              ? "warning"
-                              : "error"
+                          : row.status === "NOT FOUND" || row.status === "MULTIPLE MATCHES"
+                            ? "warning"
+                            : "error"
                       }
                     >
                       {t.statuses[row.status]}
@@ -104,10 +100,16 @@ export function ResultsPage() {
           <ArrowLeft className="h-4 w-4" />
           {t.results.newImport}
         </Button>
-        <Button onClick={() => downloadReport(rows)}>
-          <Download className="h-4 w-4" />
-          {t.results.downloadReport}
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => downloadReport(rows)}>
+            <Download className="h-4 w-4" />
+            {t.results.downloadReport}
+          </Button>
+          <Button disabled={readyForExport === 0} onClick={() => downloadItemsDarks(rows)}>
+            <Download className="h-4 w-4" />
+            {t.results.downloadItemsDarks}
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

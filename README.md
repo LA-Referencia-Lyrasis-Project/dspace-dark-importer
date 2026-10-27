@@ -1,6 +1,6 @@
 # DSpace dARK Importer by LA Referencia
 
-Application for importing a CSV file and appending metadata to existing DSpace Items through the DSpace REST API. The initial workflow imports dARKs by searching for each generated Handle URI and appending a configurable metadata field.
+Application for mapping dARKs to DSpace objects through the DSpace REST API. It resolves the Handle extracted from each OAI identifier and generates a CSV with the matched object UUID and dARK; it never modifies DSpace.
 
 The DSpace dARK Importer works only with DSpace 7 and newer REST APIs.
 
@@ -12,11 +12,9 @@ Contact, feedback, and bug reports: [GitHub Issues](https://github.com/LA-Refere
 
 - Four-step workflow: Configuration, CSV Validation, Processing, Results
 - Built-in How It Works and Privacy Policy pages
-- OAI identifier to Handle URI conversion using a configured Handle base URL
-- DSpace REST authentication with a Bearer token
-- Per-row exact phrase Discovery search and JSON Patch metadata updates
-- Automatic metadata field creation when the configured update field is missing
-- Idempotent updates: rows are skipped when the item already has the same metadata value
+- OAI identifier to Handle extraction
+- Per-row Handle resolution through the read-only PID endpoint, with Discovery fallback
+- Downloadable `items-darks.csv` containing `id,dc.identifier.dark` for uniquely matched items
 - Retry with exponential backoff for transient network and HTTP failures
 - Detailed live log and downloadable `report.csv`
 - Local Storage persistence for configuration and recently used URLs
@@ -59,40 +57,28 @@ npm test
 
 The current test suite covers the reusable OAI-to-Handle conversion utility.
 
-## Authentication
-
-The app supports Bearer token authentication. Every DSpace request includes:
-
-```http
-Authorization: Bearer <token>
-```
-
-Use a token for a DSpace user with permission to edit matched items. If the configured metadata field does not exist yet, the token must also belong to an administrator because creating metadata registry fields requires admin permissions.
-
-For modifying requests, DSpace requires JSON Patch and CSRF protection for `PATCH`, `POST`, `PUT`, and `DELETE`. The app obtains `DSPACE-XSRF-TOKEN`, sends it as `X-XSRF-TOKEN`, and the Next.js proxy keeps DSpace's CSRF cookie.
-
 ## Configuration
 
 - DSpace REST API URL: the base server URL, for example `https://repository.org/server`.
 - Repository Handle Base URL: the URL used to construct `dc.identifier.uri`, for example `https://deposita.ibict.br/handle/`.
-- Metadata field to update: defaults to `dc.identifier.dark`.
-
-If the update field does not exist, the app creates it using `POST /api/core/metadatafields?schemaId=<schemaId>`. This requires an administrator token because DSpace only allows admins to modify the metadata registry. The schema prefix, such as `dc` in `dc.identifier.dark`, must already exist.
-
-Item lookup uses the DSpace Discovery search endpoint with the generated Handle URI as an exact phrase query, for example:
+Item lookup first extracts the Handle from the OAI identifier and resolves it through the DSpace PID endpoint, for example:
 
 ```text
-/api/discover/search/objects?query=%22https%3A%2F%2Fdeposita.ibict.br%2Fhandle%2Fdeposita%2F635%22&dsoType=item&size=2
+/api/pid/find?id=hdl%3Adeposita%2F635
 ```
 
-Handle base URLs are normalized to remove duplicate slashes in the path and ensure exactly one trailing slash.
+The PID endpoint redirects to the matching DSpace object; the app follows that response and stores its UUID. It does not restrict results to items, so other DSpace object types can also be exported. If the repository cannot resolve the PID, the app falls back to an exact Discovery search using the generated Handle URI.
+
+## Prerequisite: register the dARK metadata field
+
+Before importing `items-darks.csv` into DSpace, an administrator must add `dc.identifier.dark` to the repository's DC metadata registry. In the DSpace administrative interface, open **Registries → Metadata → DC** and create the field.
 
 ## Expected CSV Format
 
 The CSV must contain headers:
 
 ```csv
-oai_identifier,dark_id
+oai_identifier,dark
 oai:deposita.ibict.br:deposita/635,dark:abcd123
 oai:repositorio.bc.ufg.br:tede/10757,dark:efgh456
 ```
@@ -129,35 +115,33 @@ becomes:
 http://localhost:4000/handle/123456789/268
 ```
 
-## Duplicate Handling
+## Output files
 
-Before patching an item, the app checks the configured update field on the matched item. If the same value already exists, the row is recorded as `SKIPPED` and no PATCH request is sent.
+`items-darks.csv` has the columns `id,dc.identifier.dark` and includes only rows with exactly one matching DSpace item. Use it in the administrator's chosen DSpace metadata-import process. `report.csv` remains available for auditing all rows.
 
 ## How It Works
 
 The UI includes a `/how-it-works` page that explains the import flow:
 
-1. Configure the DSpace REST API URL, repository Handle base URL, Bearer token, and dARK metadata field.
-2. Upload a CSV file formatted with `oai_identifier,dark_id`.
-3. Validate the CSV before any DSpace item is changed.
-4. Process rows:
-   - 4.1 Verify whether the configured metadata field exists in DSpace and create it when missing.
-   - 4.2 For each row, build the Handle URI from the OAI identifier and search the item by that URI.
-   - 4.3 Append the metadata only when needed, skipping the row when the item already has the same dARK.
-5. Review the Results screen and download `report.csv`.
+1. An administrator registers `dc.identifier.dark` in the DC metadata registry before the generated file is imported.
+2. Configure the DSpace REST API URL and repository Handle base URL.
+3. Upload a CSV file formatted with `oai_identifier,dark`.
+4. Validate the CSV before querying DSpace.
+5. Process rows:
+   - 4.1 For each row, extract the Handle from the OAI identifier and resolve it through the PID endpoint.
+   - 4.2 Export each unique match as `id,dc.identifier.dark`; DSpace is not changed.
+6. Review the Results screen and download `items-darks.csv` and `report.csv`.
 
 ## Privacy
 
-The UI includes a `/privacy-policy` page. The server only forwards requests to the DSpace API URL submitted in the UI and does not store CSV contents, Bearer tokens, DSpace API responses, or import reports. Browser Local Storage may keep configuration values, recent URLs, theme, and language preference.
+The UI includes a `/privacy-policy` page. The server only forwards read-only requests to the DSpace API URL submitted in the UI and does not store CSV contents, DSpace API responses, or import reports. Browser Local Storage may keep configuration values, recent URLs, theme, and language preference.
 
 ## DSpace Versions
 
 The app works only with DSpace 7 and newer REST APIs. It uses:
 
-- `GET /api/discover/search/objects?query="<generated-uri>"` for Discovery search
-- `GET /api/core/metadatafields` and `GET /api/core/metadataschemas` to verify the metadata registry
-- `POST /api/core/metadatafields?schemaId=<schemaId>` to create a missing update field
-- `PATCH /api/core/items/{uuid}` with JSON Patch metadata updates
+- `GET /api/pid/find?id=hdl:<handle>` to resolve the Handle to a DSpace object
+- `GET /api/discover/search/objects?query="<generated-uri>"` as a fallback when PID resolution is unavailable
 
 The DSpace REST API must be reachable from the Next.js server.
 
@@ -224,9 +208,7 @@ npm run pm2:stop
 
 ## Troubleshooting
 
-- `401 Unauthorized`: token is missing, expired, or credentials are invalid.
-- `403 Forbidden`: the authenticated user cannot edit the matching item.
-- `422 Unprocessable Entity`: the update metadata field may not exist in the DSpace metadata registry.
+- `401 Unauthorized` or `403 Forbidden`: the repository does not allow anonymous PID or Discovery searches.
 - CORS errors: make sure the app is using the built-in `/api/dspace/proxy` route and that DSpace is reachable from the Next.js server.
 - No item found: confirm that the configured Handle base URL matches the URI stored in item metadata and indexed by Discovery.
 - Multiple matches: more than one item matched the generated URI in Discovery; inspect the repository metadata before rerunning.

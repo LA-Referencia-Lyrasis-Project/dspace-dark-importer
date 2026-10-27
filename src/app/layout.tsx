@@ -4,7 +4,7 @@ import "@/index.css";
 
 export const metadata: Metadata = {
   title: "DSpace dARK Importer",
-  description: "Bulk update DSpace item metadata from CSV files."
+  description: "Generate a read-only DSpace item-to-dARK CSV mapping."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

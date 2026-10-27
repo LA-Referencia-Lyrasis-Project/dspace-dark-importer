@@ -22,6 +22,8 @@ export interface TranslationDictionary {
       howItWorks: {
         title: string;
         description: string;
+        prerequisiteTitle: string;
+        prerequisiteBody: string;
         compatibilityTitle: string;
         compatibilityBody: string;
         stepsTitle: string;
@@ -46,6 +48,9 @@ export interface TranslationDictionary {
       tutorial: {
         title: string;
         description: string;
+        prerequisiteTitle: string;
+        prerequisiteBody: string;
+        workflow: string[];
         videoLabel: string;
         openOnYoutube: string;
       };
@@ -78,6 +83,7 @@ export interface TranslationDictionary {
     total: string;
     totalRows: string;
     updated: string;
+    readyForExport: string;
     valid: string;
     warnings: string;
     closeModal: string;
@@ -87,8 +93,6 @@ export interface TranslationDictionary {
     description: string;
     restApiUrl: string;
     handleBaseUrl: string;
-    metadataFieldToUpdate: string;
-    bearerToken: string;
     csvUploadTitle: string;
     csvUploadDescription: string;
     chooseCsvFile: string;
@@ -126,6 +130,7 @@ export interface TranslationDictionary {
       processed: string;
       updated: string;
       skipped: string;
+      readyForExport: string;
       notFound: string;
       multiple: string;
       errors: string;
@@ -138,6 +143,7 @@ export interface TranslationDictionary {
     noReport: string;
     newImport: string;
     downloadReport: string;
+    downloadItemsDarks: string;
     columns: {
       oaiIdentifier: string;
       generatedUri: string;
@@ -159,11 +165,8 @@ export interface TranslationDictionary {
     duplicateDarkId: (darkId: string, rows: string) => string;
   };
   validators: {
-    metadataFieldRequired: string;
-    invalidMetadataField: string;
     restApiUrl: string;
     handleBaseUrl: string;
-    bearerToken: string;
   };
   oai: {
     handleBaseUrlRequired: string;
@@ -177,20 +180,16 @@ export interface TranslationDictionary {
   importer: {
     unexpectedError: string;
     startingSession: string;
-    bearerConfigured: string;
-    metadataFieldCreated: (field: string) => string;
-    metadataFieldVerified: (field: string) => string;
     importCancelled: string;
     searchingItem: (uri: string) => string;
+    pidResolved: (handle: string) => string;
+    discoveryFallback: (handle: string) => string;
     itemNotFound: string;
     noItemMatched: string;
     multipleItemsFound: string;
     moreThanOneItemMatched: string;
     itemFound: (uuid: string) => string;
-    metadataAlreadyExistsLog: string;
-    metadataAlreadyExistsReport: string;
-    metadataUpdated: string;
-    metadataAppended: string;
+    readyForExport: string;
   };
   statuses: Record<string, string>;
 }
@@ -199,7 +198,7 @@ export const translations: Record<Language, TranslationDictionary> = {
   en: {
     app: {
       title: "DSpace Dark Importer",
-      subtitle: "Bulk append metadata to existing items",
+      subtitle: "Map repository items and generate a dARK CSV",
       languageLabel: "Language",
       english: "English",
       portuguese: "Português",
@@ -217,18 +216,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     pages: {
       howItWorks: {
         title: "How It Works",
-        description: "The importer follows a controlled five-step flow so each CSV row can succeed, skip, or fail independently.",
+        description: "The app maps dARKs to DSpace items and generates an administrative import CSV without modifying DSpace.",
+        prerequisiteTitle: "Prerequisite: register the dARK metadata field",
+        prerequisiteBody: "Before importing the generated file into DSpace, an administrator must add dc.identifier.dark to the repository's DC metadata registry. In DSpace, open Registries → Metadata → DC.",
         compatibilityTitle: "DSpace 7+ only",
-        compatibilityBody: "The DSpace dARK Importer works only with DSpace 7 and newer REST APIs. Earlier DSpace versions do not provide the required REST endpoints for Discovery search, metadata registry checks, and JSON Patch item updates.",
+        compatibilityBody: "The DSpace dARK Importer works only with DSpace 7 and newer REST APIs. Earlier versions do not provide the Discovery endpoint used for item lookup.",
         stepsTitle: "Import flow",
         steps: [
           {
             title: "1. Configure the repository",
-            body: "Enter the DSpace REST API URL, the repository Handle base URL, the Bearer token, and the metadata field name used to store dARKs."
+            body: "Enter the DSpace REST API URL and the repository Handle base URL."
           },
           {
             title: "2. Upload the CSV",
-            body: "Upload a .csv file with the headers oai_identifier and dark_id. Blank lines are ignored."
+            body: "Upload a .csv file with the headers oai_identifier and dark. Blank lines are ignored."
           },
           {
             title: "3. Validate the CSV",
@@ -238,14 +239,13 @@ export const translations: Record<Language, TranslationDictionary> = {
             title: "4. Process rows",
             body: "The app processes each valid CSV row independently.",
             details: [
-              "4.1 Verifies whether the configured metadata field exists in DSpace and creates it when missing.",
-              "4.2 For each row, it builds the Handle URI from the OAI identifier and searches the item by that URI.",
-              "4.3 Appends the metadata only when needed, and skips the row when the item already has the same dARK."
+              "4.1 For each row, it extracts the Handle from the OAI identifier and resolves it through the DSpace PID endpoint.",
+              "4.2 If PID resolution is unavailable, it uses an exact Discovery search as fallback; DSpace is never modified."
             ]
           },
           {
-            title: "5. Review the report",
-            body: "The Results screen summarizes updated, skipped, not found, multiple match, and error counts, then lets you download report.csv for auditing."
+            title: "5. Review and import the output",
+            body: "The Results screen summarizes export-ready, not found, multiple match, and error counts, then lets you download items-darks.csv and report.csv."
           }
         ],
         csvExampleTitle: "CSV format",
@@ -259,19 +259,19 @@ export const translations: Record<Language, TranslationDictionary> = {
         sections: [
           {
             title: "Data you provide",
-            body: "The app uses the DSpace REST API URL, repository Handle base URL, Bearer token, metadata field name, and uploaded CSV rows only to perform the import workflow."
+            body: "The app uses the DSpace REST API URL, repository Handle base URL, and uploaded CSV rows only to map items and generate CSV files."
           },
           {
             title: "Browser local storage",
-            body: "User-provided data, such as the server URL, token, configuration values, theme, and language preference, is stored only in the user's browser local storage."
+            body: "User-provided data, such as the server URL, configuration values, theme, and language preference, is stored only in the user's browser local storage."
           },
           {
-            title: "DSpace token",
-            body: "The DSpace Dark Importer uses a Bearer token instead of asking for a username and password. This is safer because the app never needs to collect or transmit the user's password, and repository administrators can revoke or rotate tokens without changing the user's main credentials. Token validity is controlled by the DSpace server configuration and by the token's own expiration; the importer does not extend or renew it. When a token expires, DSpace will reject API requests and the user must provide a valid token again."
+            title: "Read-only access",
+            body: "The application makes read-only Discovery requests and cannot create metadata fields or update DSpace items."
           },
           {
             title: "Server",
-            body: "The server only forwards requests to the DSpace API URL submitted in the UI. It does not store CSV contents, Bearer tokens, DSpace API responses, or import reports."
+            body: "The server only forwards read-only requests to the DSpace API URL submitted in the UI. It does not store CSV contents, DSpace API responses, or import reports."
           },
           {
             title: "External services",
@@ -285,8 +285,11 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       tutorial: {
         title: "Video Tutorial",
-        description: "Watch the tutorial to see how to configure the importer, upload the CSV, validate rows, process metadata updates, and review the report.",
-        videoLabel: "DSpace dARK Importer video tutorial",
+        description: "Use this workflow to generate a read-only item mapping CSV. The embedded video predates this workflow; follow the written steps below for the current behavior.",
+        prerequisiteTitle: "Before you begin",
+        prerequisiteBody: "An administrator must create dc.identifier.dark in the DC metadata registry before importing the generated CSV into DSpace.",
+        workflow: ["Configure the DSpace REST API URL and the Handle base URL.", "Upload a CSV with the headers oai_identifier,dark.", "Process the file; the app resolves each extracted Handle through PID and never changes DSpace objects.", "Download items-darks.csv with the headers id,dc.identifier.dark and import it through the administrator workflow."],
+        videoLabel: "Legacy DSpace dARK Importer video tutorial",
         openOnYoutube: "Open on YouTube"
       }
     },
@@ -318,19 +321,18 @@ export const translations: Record<Language, TranslationDictionary> = {
       total: "Total",
       totalRows: "Total Rows",
       updated: "Updated",
+      readyForExport: "Ready for export",
       valid: "Valid",
       warnings: "Warnings",
       closeModal: "Close modal"
     },
     configuration: {
       title: "Configuration",
-      description: "Repository connection, authentication, and metadata fields.",
+      description: "Repository connection and Handle URI configuration.",
       restApiUrl: "DSpace REST API URL",
       handleBaseUrl: "Repository Handle base URL",
-      metadataFieldToUpdate: "Metadata field to update",
-      bearerToken: "Bearer Token",
       csvUploadTitle: "CSV Upload",
-      csvUploadDescription: "Required columns: oai_identifier and dark_id.",
+      csvUploadDescription: "Required columns: oai_identifier and dark.",
       chooseCsvFile: "Choose CSV file",
       csvOnly: ".csv only",
       parsingCsv: "Parsing CSV",
@@ -341,16 +343,16 @@ export const translations: Record<Language, TranslationDictionary> = {
     validation: {
       title: "CSV Validation",
       uploadBeforeValidation: "Upload a CSV file before validation.",
-      validationPassed: "Validation passed. The import is ready to run.",
+      validationPassed: "Validation passed. The CSV mapping is ready to run.",
       resolveValidationErrors: "Resolve validation errors before processing.",
       noValidationIssues: "No validation issues found.",
       backToConfiguration: "Back to Configuration",
-      startImport: "Start Import",
-      modalTitle: "Start Metadata Import",
-      modalDescription: "Confirm before changing repository items.",
-      modalWarningTitle: "This processing run will change DSpace items.",
+      startImport: "Start mapping",
+      modalTitle: "Start item mapping",
+      modalDescription: "Confirm before searching repository items.",
+      modalWarningTitle: "This processing run only reads from DSpace.",
       modalWarningText: (count, rowWord, metadataField) =>
-        `The importer will process ${count} valid ${rowWord} and add metadata ${metadataField} where the value is not already present.`,
+        `The app will process ${count} valid ${rowWord} and create ${metadataField} for the matched items.`,
       startProcessing: "Start Processing",
       issueSeverity: {
         error: "error",
@@ -376,6 +378,7 @@ export const translations: Record<Language, TranslationDictionary> = {
         processed: "Processed",
         updated: "Updated",
         skipped: "Skipped",
+        readyForExport: "Ready for export",
         notFound: "Not Found",
         multiple: "Multiple",
         errors: "Errors",
@@ -388,6 +391,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       noReport: "No execution report is available yet.",
       newImport: "New Import",
       downloadReport: "Download report.csv",
+      downloadItemsDarks: "Download items-darks.csv",
       columns: {
         oaiIdentifier: "OAI Identifier",
         generatedUri: "Generated URI",
@@ -409,11 +413,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       duplicateDarkId: (darkId, rows) => `Duplicate dARK "${darkId}" appears on rows ${rows}.`
     },
     validators: {
-      metadataFieldRequired: "Metadata field is required.",
-      invalidMetadataField: "Use a valid DSpace metadata field, such as dc.identifier.uri.",
       restApiUrl: "Enter a valid DSpace REST API URL.",
       handleBaseUrl: "Enter a valid Handle Base URL.",
-      bearerToken: "Bearer token is required."
     },
     oai: {
       handleBaseUrlRequired: "Handle Base URL is required.",
@@ -427,23 +428,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     importer: {
       unexpectedError: "Unexpected error.",
       startingSession: "Starting import session.",
-      bearerConfigured: "Bearer token configured. DSpace will validate it on API requests.",
-      metadataFieldCreated: (field) => `Metadata field created: ${field}.`,
-      metadataFieldVerified: (field) => `Metadata field verified: ${field}.`,
       importCancelled: "Import cancelled.",
       searchingItem: (uri) => `Searching item for ${uri}.`,
+      pidResolved: (handle) => `PID resolved Handle ${handle}.`,
+      discoveryFallback: (handle) => `PID could not resolve Handle ${handle}; using Discovery fallback.`,
       itemNotFound: "Item not found.",
       noItemMatched: "No item matched the generated URI.",
       multipleItemsFound: "Multiple matching items found.",
       moreThanOneItemMatched: "More than one item matched the generated URI.",
       itemFound: (uuid) => `Item found: ${uuid}.`,
-      metadataAlreadyExistsLog: "Metadata value already exists. Skipping row.",
-      metadataAlreadyExistsReport: "Metadata value already exists on item.",
-      metadataUpdated: "Metadata updated.",
-      metadataAppended: "Metadata value appended."
+      readyForExport: "Item mapped and ready for export."
     },
     statuses: {
       UPDATED: "UPDATED",
+      "READY FOR EXPORT": "READY FOR EXPORT",
       SKIPPED: "SKIPPED",
       "NOT FOUND": "NOT FOUND",
       "MULTIPLE MATCHES": "MULTIPLE MATCHES",
@@ -456,7 +454,7 @@ export const translations: Record<Language, TranslationDictionary> = {
   pt: {
     app: {
       title: "Importador de dARK para DSpace",
-      subtitle: "Adicione metadados em lote a itens existentes",
+      subtitle: "Mapeie itens do repositório e gere um CSV de dARKs",
       languageLabel: "Idioma",
       english: "English",
       portuguese: "Português",
@@ -474,18 +472,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     pages: {
       howItWorks: {
         title: "Como Funciona",
-        description: "O importador segue um fluxo controlado em cinco etapas para que cada linha do CSV possa ser atualizada, ignorada ou falhar de forma independente.",
+        description: "A aplicação mapeia dARKs para itens do DSpace e gera um CSV para importação administrativa, sem alterar o DSpace.",
+        prerequisiteTitle: "Pré-condição: cadastrar o campo de metadado dARK",
+        prerequisiteBody: "Antes de importar o arquivo gerado no DSpace, um administrador deve adicionar dc.identifier.dark ao registro de metadados DC do repositório. No DSpace, acesse Registros → Metadados → DC.",
         compatibilityTitle: "Somente DSpace 7+",
-        compatibilityBody: "O Importador de dARK para DSpace funciona somente com as APIs REST do DSpace 7 ou superior. Versões anteriores do DSpace não oferecem os endpoints REST necessários para busca Discovery, verificação do registro de metadados e atualização de itens com JSON Patch.",
+        compatibilityBody: "O Importador de dARK para DSpace funciona somente com as APIs REST do DSpace 7 ou superior. Versões anteriores não oferecem o endpoint Discovery usado para localizar itens.",
         stepsTitle: "Fluxo de importação",
         steps: [
           {
             title: "1. Configure o repositório",
-            body: "Informe a URL da API REST do DSpace, a URL base do Handle do repositório, o token Bearer e o nome do campo de metadado usado para armazenar os dARKs."
+            body: "Informe a URL da API REST do DSpace e a URL base do Handle do repositório."
           },
           {
             title: "2. Envie o CSV",
-            body: "Envie um arquivo .csv com os cabeçalhos oai_identifier e dark_id. Linhas em branco são ignoradas."
+            body: "Envie um arquivo .csv com os cabeçalhos oai_identifier e dark. Linhas em branco são ignoradas."
           },
           {
             title: "3. Valide o CSV",
@@ -495,13 +495,12 @@ export const translations: Record<Language, TranslationDictionary> = {
             title: "4. Processe as linhas",
             body: "A aplicação processa cada linha válida do CSV de forma independente.",
             details: [
-              "4.1 Verifica se o campo de metadado configurado existe no DSpace e o cria quando estiver ausente.",
-              "4.2 Para cada linha, gera a URI Handle a partir do identificador OAI e busca o item por essa URI.",
-              "4.3 Adiciona o metadado somente quando necessário, e ignora a linha quando o item já possui o mesmo dARK."
+              "4.1 Para cada linha, extrai o Handle do identificador OAI e o resolve pelo endpoint PID do DSpace.",
+              "4.2 Se a resolução PID não estiver disponível, usa uma busca Discovery exata como alternativa; o DSpace nunca é alterado."
             ]
           },
           {
-            title: "5. Revise o relatório",
+            title: "5. Revise e importe a saída",
             body: "A tela de Resultados resume itens atualizados, ignorados, não encontrados, múltiplas correspondências e erros, e permite baixar o report.csv para auditoria."
           }
         ],
@@ -516,19 +515,19 @@ export const translations: Record<Language, TranslationDictionary> = {
         sections: [
           {
             title: "Dados informados",
-            body: "A aplicação usa a URL da API REST do DSpace, a URL base do Handle do repositório, o token Bearer, o nome do campo de metadado e as linhas do CSV enviado apenas para executar o fluxo de importação."
+            body: "A aplicação usa a URL da API REST do DSpace, a URL base do Handle do repositório e as linhas do CSV enviado apenas para mapear itens e gerar arquivos CSV."
           },
           {
             title: "Armazenamento local do navegador",
-            body: "Os dados informados pelo usuário, como URL do servidor, token, valores de configuração, tema e preferência de idioma, são armazenados somente no armazenamento local do navegador do usuário."
+            body: "Os dados informados pelo usuário, como URL do servidor, valores de configuração, tema e preferência de idioma, são armazenados somente no armazenamento local do navegador do usuário."
           },
           {
-            title: "Token do DSpace",
-            body: "O Importador de dARK para DSpace usa um token Bearer em vez de solicitar usuário e senha. Isso é mais seguro porque a aplicação não precisa coletar nem transmitir a senha do usuário, e administradores do repositório podem revogar ou trocar tokens sem alterar as credenciais principais do usuário. A validade do token é controlada pela configuração do servidor DSpace e pela expiração do próprio token; o importador não estende nem renova essa validade. Quando o token expira, o DSpace rejeita as requisições da API e o usuário precisa informar um token válido novamente."
+            title: "Acesso somente leitura",
+            body: "A aplicação faz apenas consultas Discovery e não pode criar campos de metadados nem atualizar itens do DSpace."
           },
           {
             title: "Servidor",
-            body: "O servidor apenas encaminha as requisições para a URL da API DSpace informada na UI. Ele não armazena conteúdos do CSV, tokens Bearer, respostas da API DSpace nem relatórios de importação."
+            body: "O servidor apenas encaminha requisições de leitura para a URL da API DSpace informada na UI. Ele não armazena conteúdos do CSV, respostas da API DSpace nem relatórios de importação."
           },
           {
             title: "Serviços externos",
@@ -542,8 +541,11 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       tutorial: {
         title: "Tutorial em Vídeo",
-        description: "Assista ao tutorial para ver como configurar o importador, enviar o CSV, validar as linhas, processar as atualizações de metadados e revisar o relatório.",
-        videoLabel: "Tutorial em vídeo do Importador de dARK para DSpace",
+        description: "Use este fluxo para gerar um CSV de mapeamento somente leitura. O vídeo incorporado é anterior a este fluxo; siga as etapas escritas abaixo para o comportamento atual.",
+        prerequisiteTitle: "Antes de começar",
+        prerequisiteBody: "Um administrador deve criar dc.identifier.dark no registro de metadados DC antes de importar o CSV gerado no DSpace.",
+        workflow: ["Configure a URL da API REST do DSpace e a URL base do Handle.", "Envie um CSV com os cabeçalhos oai_identifier,dark.", "Processe o arquivo; a aplicação resolve cada Handle extraído pelo PID e nunca altera objetos do DSpace.", "Baixe items-darks.csv com os cabeçalhos id,dc.identifier.dark e importe-o pelo fluxo administrativo."],
+        videoLabel: "Tutorial em vídeo legado do Importador de dARK para DSpace",
         openOnYoutube: "Abrir no YouTube"
       }
     },
@@ -575,19 +577,18 @@ export const translations: Record<Language, TranslationDictionary> = {
       total: "Total",
       totalRows: "Total de linhas",
       updated: "Atualizados",
+      readyForExport: "Prontos para exportação",
       valid: "Válidos",
       warnings: "Avisos",
       closeModal: "Fechar modal"
     },
     configuration: {
       title: "Configuração",
-      description: "Conexão do repositório, autenticação e campos de metadados.",
+      description: "Conexão do repositório e configuração da URI Handle.",
       restApiUrl: "URL da API REST do DSpace",
       handleBaseUrl: "URL base do Handle do repositório",
-      metadataFieldToUpdate: "Campo de metadado a atualizar",
-      bearerToken: "Token Bearer",
       csvUploadTitle: "Envio do CSV",
-      csvUploadDescription: "Colunas obrigatórias: oai_identifier e dark_id.",
+      csvUploadDescription: "Colunas obrigatórias: oai_identifier e dark.",
       chooseCsvFile: "Escolher arquivo CSV",
       csvOnly: "somente .csv",
       parsingCsv: "Lendo CSV",
@@ -598,16 +599,16 @@ export const translations: Record<Language, TranslationDictionary> = {
     validation: {
       title: "Validação do CSV",
       uploadBeforeValidation: "Envie um arquivo CSV antes da validação.",
-      validationPassed: "Validação concluída. A importação está pronta para iniciar.",
+      validationPassed: "Validação concluída. O mapeamento do CSV está pronto para iniciar.",
       resolveValidationErrors: "Resolva os erros de validação antes de processar.",
       noValidationIssues: "Nenhum problema de validação encontrado.",
       backToConfiguration: "Voltar para configuração",
-      startImport: "Iniciar importação",
-      modalTitle: "Iniciar importação de metadados",
-      modalDescription: "Confirme antes de alterar itens do repositório.",
-      modalWarningTitle: "Este processamento alterará itens do DSpace.",
+      startImport: "Iniciar mapeamento",
+      modalTitle: "Iniciar mapeamento de itens",
+      modalDescription: "Confirme antes de buscar itens no repositório.",
+      modalWarningTitle: "Este processamento apenas consulta o DSpace.",
       modalWarningText: (count, rowWord, metadataField) =>
-        `O importador processará ${count} ${rowWord} válidas e adicionará o metadado ${metadataField} quando o valor ainda não existir.`,
+        `A aplicação processará ${count} ${rowWord} válidas e criará ${metadataField} para os itens encontrados.`,
       startProcessing: "Iniciar processamento",
       issueSeverity: {
         error: "erro",
@@ -633,6 +634,7 @@ export const translations: Record<Language, TranslationDictionary> = {
         processed: "Processados",
         updated: "Atualizados",
         skipped: "Ignorados",
+        readyForExport: "Prontos para exportação",
         notFound: "Não encontrados",
         multiple: "Múltiplos",
         errors: "Erros",
@@ -645,6 +647,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       noReport: "Nenhum relatório de execução está disponível ainda.",
       newImport: "Nova importação",
       downloadReport: "Baixar report.csv",
+      downloadItemsDarks: "Baixar items-darks.csv",
       columns: {
         oaiIdentifier: "Identificador OAI",
         generatedUri: "URI gerada",
@@ -666,11 +669,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       duplicateDarkId: (darkId, rows) => `O dARK duplicado "${darkId}" aparece nas linhas ${rows}.`
     },
     validators: {
-      metadataFieldRequired: "O campo de metadado é obrigatório.",
-      invalidMetadataField: "Use um campo de metadado DSpace válido, como dc.identifier.uri.",
       restApiUrl: "Informe uma URL válida da API REST do DSpace.",
       handleBaseUrl: "Informe uma URL base de Handle válida.",
-      bearerToken: "O token Bearer é obrigatório."
     },
     oai: {
       handleBaseUrlRequired: "A URL base do Handle é obrigatória.",
@@ -684,23 +684,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     importer: {
       unexpectedError: "Erro inesperado.",
       startingSession: "Iniciando sessão de importação.",
-      bearerConfigured: "Token Bearer configurado. O DSpace validará o token nas requisições da API.",
-      metadataFieldCreated: (field) => `Campo de metadado criado: ${field}.`,
-      metadataFieldVerified: (field) => `Campo de metadado verificado: ${field}.`,
       importCancelled: "Importação cancelada.",
       searchingItem: (uri) => `Buscando item para ${uri}.`,
+      pidResolved: (handle) => `PID resolveu o Handle ${handle}.`,
+      discoveryFallback: (handle) => `PID não resolveu o Handle ${handle}; usando busca Discovery alternativa.`,
       itemNotFound: "Item não encontrado.",
       noItemMatched: "Nenhum item correspondeu à URI gerada.",
       multipleItemsFound: "Vários itens correspondentes encontrados.",
       moreThanOneItemMatched: "Mais de um item correspondeu à URI gerada.",
       itemFound: (uuid) => `Item encontrado: ${uuid}.`,
-      metadataAlreadyExistsLog: "O valor do metadado já existe. Ignorando linha.",
-      metadataAlreadyExistsReport: "O valor do metadado já existe no item.",
-      metadataUpdated: "Metadado atualizado.",
-      metadataAppended: "Valor de metadado adicionado."
+      readyForExport: "Item mapeado e pronto para exportação."
     },
     statuses: {
       UPDATED: "ATUALIZADO",
+      "READY FOR EXPORT": "PRONTO PARA EXPORTAÇÃO",
       SKIPPED: "IGNORADO",
       "NOT FOUND": "NÃO ENCONTRADO",
       "MULTIPLE MATCHES": "MÚLTIPLOS RESULTADOS",

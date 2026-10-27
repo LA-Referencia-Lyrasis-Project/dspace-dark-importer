@@ -1,9 +1,6 @@
 export interface ImportConfig {
   restApiUrl: string;
   handleBaseUrl: string;
-  bearerToken: string;
-  metadataSearchField: string;
-  metadataUpdateField: string;
 }
 
 export interface RecentConfig {
@@ -28,7 +25,7 @@ export type ValidationSeverity = "error" | "warning";
 export interface ValidationIssue {
   severity: ValidationSeverity;
   rowNumber?: number;
-  field?: "oai_identifier" | "dark_id" | "csv";
+  field?: "oai_identifier" | "dark" | "csv";
   message: string;
 }
 
@@ -41,8 +38,7 @@ export interface ValidationSummary {
 }
 
 export type ImportStatus =
-  | "UPDATED"
-  | "SKIPPED"
+  | "READY FOR EXPORT"
   | "NOT FOUND"
   | "MULTIPLE MATCHES"
   | "API ERROR"
@@ -53,7 +49,7 @@ export type ImportStatus =
 export interface ImportReportRow {
   oai_identifier: string;
   generated_uri: string;
-  dark_id: string;
+  dark: string;
   item_uuid: string;
   item_handle: string;
   status: ImportStatus;
@@ -63,8 +59,7 @@ export interface ImportReportRow {
 export interface ProcessingStats {
   total: number;
   processed: number;
-  updated: number;
-  skipped: number;
+  readyForExport: number;
   notFound: number;
   multipleMatches: number;
   errors: number;
@@ -92,7 +87,7 @@ export interface DSpaceItem {
   handle: string | null;
   name?: string;
   metadata: Record<string, DSpaceMetadataValue[]>;
-  type: "item";
+  type?: string;
   _links?: {
     self?: {
       href: string;

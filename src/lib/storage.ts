@@ -5,10 +5,7 @@ const RECENT_KEY = "dspace-darkid-import:recent";
 
 export const defaultConfig: ImportConfig = {
   restApiUrl: "",
-  handleBaseUrl: "",
-  bearerToken: "",
-  metadataSearchField: "dc.identifier.uri",
-  metadataUpdateField: "dc.identifier.dark"
+  handleBaseUrl: ""
 };
 
 const defaultRecent: RecentConfig = {
@@ -38,10 +35,7 @@ export function loadConfig(): ImportConfig {
 
     return {
       restApiUrl: typeof parsed.restApiUrl === "string" ? parsed.restApiUrl : defaultConfig.restApiUrl,
-      handleBaseUrl: typeof parsed.handleBaseUrl === "string" ? parsed.handleBaseUrl : defaultConfig.handleBaseUrl,
-      bearerToken: typeof parsed.bearerToken === "string" ? parsed.bearerToken : defaultConfig.bearerToken,
-      metadataSearchField: typeof parsed.metadataSearchField === "string" ? parsed.metadataSearchField : defaultConfig.metadataSearchField,
-      metadataUpdateField: typeof parsed.metadataUpdateField === "string" ? parsed.metadataUpdateField : defaultConfig.metadataUpdateField
+      handleBaseUrl: typeof parsed.handleBaseUrl === "string" ? parsed.handleBaseUrl : defaultConfig.handleBaseUrl
     };
   } catch {
     return defaultConfig;

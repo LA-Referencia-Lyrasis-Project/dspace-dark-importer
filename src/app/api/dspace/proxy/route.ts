@@ -37,7 +37,7 @@ interface ProxyRequestPayload {
 interface ValidatedProxyPayload {
   restApiUrl: string;
   path: string;
-  method: "GET" | "POST" | "PATCH";
+  method: "GET";
   headers: Record<string, string>;
   body?: string;
 }
@@ -91,7 +91,7 @@ function validateProxyPayload(value: unknown): ValidatedProxyPayload {
   }
 
   const method = payload.method.toUpperCase();
-  if (method !== "GET" && method !== "POST" && method !== "PATCH") {
+  if (method !== "GET") {
     throw new Error(`Unsupported DSpace method: ${method}.`);
   }
 

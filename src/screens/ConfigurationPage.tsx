@@ -98,15 +98,6 @@ export function ConfigurationPage() {
             </datalist>
           </Field>
 
-          <div className="grid gap-4">
-            <Field label={t.configuration.metadataFieldToUpdate} htmlFor="metadataUpdateField" error={errors.metadataUpdateField?.message}>
-              <Input id="metadataUpdateField" {...register("metadataUpdateField")}  placeholder="dc.identifier.dark"/>
-            </Field>
-          </div>
-
-          <Field label={t.configuration.bearerToken} htmlFor="bearerToken" error={errors.bearerToken?.message}>
-            <Input id="bearerToken" type="password" autoComplete="off" {...register("bearerToken")} />
-          </Field>
         </CardContent>
       </Card>
 

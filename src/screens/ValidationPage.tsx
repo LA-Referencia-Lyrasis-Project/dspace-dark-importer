@@ -145,7 +145,7 @@ export function ValidationPage() {
               {t.validation.modalWarningText(
                 validation.validRows.toLocaleString(numberLocale),
                 validation.validRows === 1 ? t.common.row : t.common.rows,
-                config.metadataUpdateField
+                "items-darks.csv"
               )}
             </p>
           </div>

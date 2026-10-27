@@ -3,7 +3,7 @@ import type { CsvDataset, CsvImportRow, ValidationIssue, ValidationSummary } fro
 import { buildHandleUri } from "@/lib/oai";
 import { translations, type TranslationDictionary } from "@/lib/i18n";
 
-const REQUIRED_COLUMNS = ["oai_identifier", "dark_id"] as const;
+const REQUIRED_COLUMNS = ["oai_identifier", "dark"] as const;
 type CsvMessages = TranslationDictionary["csv"];
 type OaiMessages = TranslationDictionary["oai"];
 
@@ -36,7 +36,7 @@ export async function parseCsvFile(file: File, messages: CsvMessages = translati
         const rows: CsvImportRow[] = result.data.map((row, index) => ({
           rowNumber: index + 2,
           oaiIdentifier: stringValue(row.oai_identifier),
-          darkId: stringValue(row.dark_id)
+          darkId: stringValue(row.dark)
         }));
 
         resolve({
@@ -114,7 +114,7 @@ export function validateCsvDataset(
       issues.push({
         severity: "error",
         rowNumber: row.rowNumber,
-        field: "dark_id",
+        field: "dark",
         message: messages.darkIdRequired
       });
     } else {
@@ -141,7 +141,7 @@ export function validateCsvDataset(
     if (rowNumbers.length > 1) {
       issues.push({
         severity: "warning",
-        field: "dark_id",
+        field: "dark",
         message: messages.duplicateDarkId(darkId, rowNumbers.join(", "))
       });
     }

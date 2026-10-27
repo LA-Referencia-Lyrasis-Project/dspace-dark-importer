@@ -19,6 +19,11 @@ export function HowItWorksPage() {
         <p className="mt-2 text-sm leading-6 text-muted-foreground">{t.pages.howItWorks.compatibilityBody}</p>
       </section>
 
+      <section className="rounded-md border border-warning/40 bg-warning/10 p-4">
+        <h2 className="font-semibold">{t.pages.howItWorks.prerequisiteTitle}</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{t.pages.howItWorks.prerequisiteBody}</p>
+      </section>
+
       <Card>
         <CardHeader>
           <CardTitle>{t.pages.howItWorks.stepsTitle}</CardTitle>
@@ -58,7 +63,7 @@ export function HowItWorksPage() {
           </CardHeader>
           <CardContent>
             <pre className="overflow-x-auto rounded-md border bg-muted p-4 text-sm">
-              <code>{`oai_identifier,dark_id
+              <code>{`oai_identifier,dark
 oai:deposita.ibict.br:deposita/635,dark:abcd123
 oai:repositorio.bc.ufg.br:tede/10757,dark:efgh456`}</code>
             </pre>
