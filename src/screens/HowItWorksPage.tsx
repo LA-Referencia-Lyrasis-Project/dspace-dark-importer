@@ -72,6 +72,19 @@ oai:repositorio.bc.ufg.br:tede/10757,dark:efgh456`}</code>
 
         <Card>
           <CardHeader>
+            <CardTitle>{t.pages.howItWorks.outputTitle}</CardTitle>
+            <CardDescription>{t.pages.howItWorks.outputDescription}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <pre className="overflow-x-auto rounded-md border bg-muted p-4 text-sm">
+              <code>{`id,dc.identifier.dark
+550e8400-e29b-41d4-a716-446655440000,dark:abcd123`}</code>
+            </pre>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>{t.pages.howItWorks.reportTitle}</CardTitle>
           </CardHeader>
           <CardContent>

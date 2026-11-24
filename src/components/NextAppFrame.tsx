@@ -8,7 +8,7 @@ import { AppShell } from "@/components/AppShell";
 import { useTheme } from "@/hooks/useTheme";
 
 function stepForPath(pathname: string): number | null {
-  if (pathname.startsWith("/how-it-works") || pathname.startsWith("/privacy-policy") || pathname.startsWith("/tutorial")) {
+  if (pathname.startsWith("/how-it-works") || pathname.startsWith("/privacy-policy")) {
     return null;
   }
 

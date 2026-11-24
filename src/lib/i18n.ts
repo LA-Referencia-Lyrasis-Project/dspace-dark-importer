@@ -12,7 +12,6 @@ export interface TranslationDictionary {
   footer: {
     ariaLabel: string;
     howItWorks: string;
-    tutorial: string;
     privacyPolicy: string;
     github: string;
     feedback: string;
@@ -34,6 +33,8 @@ export interface TranslationDictionary {
         }>;
       csvExampleTitle: string;
       csvExampleDescription: string;
+      outputTitle: string;
+      outputDescription: string;
       reportTitle: string;
       reportBody: string;
     };
@@ -45,15 +46,6 @@ export interface TranslationDictionary {
         body: string;
       }>;
     };
-      tutorial: {
-        title: string;
-        description: string;
-        prerequisiteTitle: string;
-        prerequisiteBody: string;
-        workflow: string[];
-        videoLabel: string;
-        openOnYoutube: string;
-      };
   };
   steps: {
     configuration: string;
@@ -207,7 +199,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     footer: {
       ariaLabel: "Application links",
       howItWorks: "How it works",
-      tutorial: "Video tutorial",
       privacyPolicy: "Privacy Policy",
       github: "GitHub",
       feedback: "Contact, feedback, or bug",
@@ -221,7 +212,7 @@ export const translations: Record<Language, TranslationDictionary> = {
         prerequisiteBody: "Before importing the generated file into DSpace, an administrator must add dc.identifier.dark to the repository's DC metadata registry. In DSpace, open Registries → Metadata → DC.",
         compatibilityTitle: "DSpace 7+ only",
         compatibilityBody: "The DSpace dARK Importer works only with DSpace 7 and newer REST APIs. Earlier versions do not provide the Discovery endpoint used for item lookup.",
-        stepsTitle: "Import flow",
+        stepsTitle: "Workflow",
         steps: [
           {
             title: "1. Configure the repository",
@@ -233,7 +224,7 @@ export const translations: Record<Language, TranslationDictionary> = {
           },
           {
             title: "3. Validate the CSV",
-            body: "The app checks required columns, empty values, duplicate OAI identifiers, malformed OAI identifiers, and duplicate dARKs as warnings."
+            body: "Missing columns, empty values, malformed OAI identifiers, and duplicate OAI identifiers must be corrected before processing. Duplicate dARKs are shown as warnings."
           },
           {
             title: "4. Process rows",
@@ -245,11 +236,13 @@ export const translations: Record<Language, TranslationDictionary> = {
           },
           {
             title: "5. Review and import the output",
-            body: "The Results screen summarizes export-ready, not found, multiple match, and error counts, then lets you download items-darks.csv and report.csv."
+            body: "Review the counts and download items-darks.csv for the DSpace metadata import. Use report.csv to investigate unmatched rows and errors. Import the generated file using your administrator’s DSpace metadata-import process."
           }
         ],
-        csvExampleTitle: "CSV format",
+        csvExampleTitle: "Input CSV",
         csvExampleDescription: "Use exactly these required headers:",
+        outputTitle: "Output: items-darks.csv",
+        outputDescription: "Each row pairs the matched DSpace item UUID (id) with the input dARK (dc.identifier.dark). Only rows with exactly one matching item are included; unmatched rows, multiple matches, and errors are excluded.",
         reportTitle: "Result report",
         reportBody: "The report contains the original OAI identifier, generated URI, dARK, matched item UUID, item handle, final status, and message."
       },
@@ -282,15 +275,6 @@ export const translations: Record<Language, TranslationDictionary> = {
             body: "Repository administrators are responsible for using valid credentials, reviewing CSV contents before processing, and confirming that metadata updates comply with their institution's policies."
           }
         ]
-      },
-      tutorial: {
-        title: "Video Tutorial",
-        description: "Use this workflow to generate a read-only item mapping CSV. The embedded video predates this workflow; follow the written steps below for the current behavior.",
-        prerequisiteTitle: "Before you begin",
-        prerequisiteBody: "An administrator must create dc.identifier.dark in the DC metadata registry before importing the generated CSV into DSpace.",
-        workflow: ["Configure the DSpace REST API URL and the Handle base URL.", "Upload a CSV with the headers oai_identifier,dark.", "Process the file; the app resolves each extracted Handle through PID and never changes DSpace objects.", "Download items-darks.csv with the headers id,dc.identifier.dark and import it through the administrator workflow."],
-        videoLabel: "Legacy DSpace dARK Importer video tutorial",
-        openOnYoutube: "Open on YouTube"
       }
     },
     steps: {
@@ -463,7 +447,6 @@ export const translations: Record<Language, TranslationDictionary> = {
     footer: {
       ariaLabel: "Links da aplicação",
       howItWorks: "Como funciona",
-      tutorial: "Tutorial em vídeo",
       privacyPolicy: "Política de Privacidade",
       github: "GitHub",
       feedback: "Contato, feedback ou bug",
@@ -477,7 +460,7 @@ export const translations: Record<Language, TranslationDictionary> = {
         prerequisiteBody: "Antes de importar o arquivo gerado no DSpace, um administrador deve adicionar dc.identifier.dark ao registro de metadados DC do repositório. No DSpace, acesse Registros → Metadados → DC.",
         compatibilityTitle: "Somente DSpace 7+",
         compatibilityBody: "O Importador de dARK para DSpace funciona somente com as APIs REST do DSpace 7 ou superior. Versões anteriores não oferecem o endpoint Discovery usado para localizar itens.",
-        stepsTitle: "Fluxo de importação",
+        stepsTitle: "Fluxo de trabalho",
         steps: [
           {
             title: "1. Configure o repositório",
@@ -489,7 +472,7 @@ export const translations: Record<Language, TranslationDictionary> = {
           },
           {
             title: "3. Valide o CSV",
-            body: "A aplicação verifica colunas obrigatórias, valores vazios, identificadores OAI duplicados, identificadores OAI malformados e dARKs duplicados como avisos."
+            body: "Colunas ausentes, valores vazios e identificadores OAI malformados ou duplicados devem ser corrigidos antes do processamento. dARKs duplicados são exibidos como avisos."
           },
           {
             title: "4. Processe as linhas",
@@ -501,11 +484,13 @@ export const translations: Record<Language, TranslationDictionary> = {
           },
           {
             title: "5. Revise e importe a saída",
-            body: "A tela de Resultados resume itens atualizados, ignorados, não encontrados, múltiplas correspondências e erros, e permite baixar o report.csv para auditoria."
+            body: "Revise as contagens e baixe items-darks.csv para a importação de metadados no DSpace. Use report.csv para investigar linhas sem correspondência e erros. Importe o arquivo gerado pelo processo administrativo de importação de metadados do DSpace."
           }
         ],
-        csvExampleTitle: "Formato do CSV",
+        csvExampleTitle: "CSV de entrada",
         csvExampleDescription: "Use exatamente estes cabeçalhos obrigatórios:",
+        outputTitle: "Saída: items-darks.csv",
+        outputDescription: "Cada linha associa o UUID do item do DSpace encontrado (id) ao dARK informado (dc.identifier.dark). Apenas linhas com exatamente um item correspondente são incluídas; linhas sem correspondência, com múltiplas correspondências ou com erros são excluídas.",
         reportTitle: "Relatório de resultado",
         reportBody: "O relatório contém o identificador OAI original, a URI gerada, o dARK, o UUID do item encontrado, o handle do item, o status final e a mensagem."
       },
@@ -538,15 +523,6 @@ export const translations: Record<Language, TranslationDictionary> = {
             body: "Administradores do repositório são responsáveis por usar credenciais válidas, revisar o conteúdo do CSV antes do processamento e confirmar que as atualizações de metadados seguem as políticas da instituição."
           }
         ]
-      },
-      tutorial: {
-        title: "Tutorial em Vídeo",
-        description: "Use este fluxo para gerar um CSV de mapeamento somente leitura. O vídeo incorporado é anterior a este fluxo; siga as etapas escritas abaixo para o comportamento atual.",
-        prerequisiteTitle: "Antes de começar",
-        prerequisiteBody: "Um administrador deve criar dc.identifier.dark no registro de metadados DC antes de importar o CSV gerado no DSpace.",
-        workflow: ["Configure a URL da API REST do DSpace e a URL base do Handle.", "Envie um CSV com os cabeçalhos oai_identifier,dark.", "Processe o arquivo; a aplicação resolve cada Handle extraído pelo PID e nunca altera objetos do DSpace.", "Baixe items-darks.csv com os cabeçalhos id,dc.identifier.dark e importe-o pelo fluxo administrativo."],
-        videoLabel: "Tutorial em vídeo legado do Importador de dARK para DSpace",
-        openOnYoutube: "Abrir no YouTube"
       }
     },
     steps: {
